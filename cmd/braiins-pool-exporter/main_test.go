@@ -11,7 +11,7 @@ func TestRunPollStepsResetsIntervalAfterSlowPoll(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	entered := make(chan struct{})
+	entered := make(chan struct{}, 2)
 	release := make(chan struct{})
 	var active int32
 	var calls int32
