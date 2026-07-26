@@ -1,0 +1,40 @@
+{
+  "onchain": [
+    {
+      "financial_account_name": "Example Bitcoin Account",
+      "requested_at_ts": 1721997284,
+      "resolved_at_ts": 1721999584,
+      "status": "confirmed",
+      "amount_sats": 50000,
+      "fee_sats": 1000,
+      "destination": "bc1qexampledestination000000000000000000000000",
+      "tx_id": "exampletxid000000000000000000000000000000000000000000000000000000",
+      "trigger_type": "triggered"
+    },
+    {
+      "financial_account_name": "Example Bitcoin Account",
+      "requested_at_ts": 1722997284,
+      "resolved_at_ts": 1722999584,
+      "status": "queued",
+      "amount_sats": 100000,
+      "fee_sats": 0,
+      "destination": "bc1qexampledestination000000000000000000000000",
+      "tx_id": null,
+      "trigger_type": "triggered"
+    }
+  ],
+  "lightning": [
+    {
+      "financial_account_name": "Example Lightning Account",
+      "requested_at_ts": 1712846879,
+      "resolved_at_ts": 1712846885,
+      "status": "confirmed",
+      "amount_sats": 441348,
+      "fee_sats": 0,
+      "destination": "user@example.invalid",
+      "invoice": "lnbc1exampleinvoice",
+      "preimage": "examplepreimage",
+      "trigger_type": "triggered"
+    }
+  ]
+}

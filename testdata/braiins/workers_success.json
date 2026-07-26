@@ -1,0 +1,42 @@
+{
+  "btc": {
+    "workers": {
+      "worker-a": {
+        "state": "ok",
+        "last_share": 1542103204,
+        "hash_rate_unit": "Gh/s",
+        "hash_rate_scoring": 15342,
+        "hash_rate_5m": 14977,
+        "hash_rate_60m": 15302,
+        "hash_rate_24h": 15351,
+        "shares_5m": 90304,
+        "shares_60m": 1125762,
+        "shares_24h": 20945364
+      },
+      "worker-b": {
+        "state": "low",
+        "last_share": 1542103200,
+        "hash_rate_unit": "Gh/s",
+        "hash_rate_scoring": 12952,
+        "hash_rate_5m": 13001,
+        "hash_rate_60m": 12889,
+        "hash_rate_24h": 13006,
+        "shares_5m": 90304,
+        "shares_60m": 1125762,
+        "shares_24h": 20945364
+      },
+      "worker-offline": {
+        "state": "off",
+        "last_share": 1542100000,
+        "hash_rate_unit": "Gh/s",
+        "hash_rate_scoring": 0,
+        "hash_rate_5m": 0,
+        "hash_rate_60m": 0,
+        "hash_rate_24h": 0,
+        "shares_5m": 0,
+        "shares_60m": 0,
+        "shares_24h": 0
+      }
+    }
+  }
+}

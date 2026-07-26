@@ -36,9 +36,15 @@ responsibility.
 
 ## Required future tests
 
-Milestone 01 must add token-redaction tests covering request construction, URL
-sanitization, transport errors, non-2xx responses, decoding errors, and panic
-or debug formatting. Fuzzing URL/error sanitizers should be considered.
+Milestone 01 adds token-redaction tests covering request construction, unsafe
+URLs, transport errors, non-2xx responses, decoding errors, and formatting.
+Fuzzing URL/error sanitizers should still be considered later.
+
+Live API validation must use only `BRAIINS_POOL_TOKEN` or
+`BRAIINS_POOL_TOKEN_FILE`. A repo-local ignored file such as `SECRETS.md` is
+not an implicit credential source for automated discovery. If live responses
+are captured later, keep them outside the repository until every field is
+sanitized and reviewed.
 
 Before a public release, review Git history, repository settings, fixtures,
 dependencies, container contents, workflow permissions, and documentation for

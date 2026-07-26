@@ -1,0 +1,15 @@
+{
+  "btc": {
+    "daily_rewards": [
+      {
+        "date": 1733097600,
+        "total_reward": "0.00061081",
+        "mining_reward": "0.00048119",
+        "bos_plus_reward": "0.00002962",
+        "referral_bonus": "0.00000000",
+        "referral_reward": "0.00000000",
+        "calculation_date": 1733191200
+      }
+    ]
+  }
+}

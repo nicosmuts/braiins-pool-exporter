@@ -16,11 +16,10 @@ behavior to public defaults.
 - Toolchain: Go 1.26.4
 - License: Apache-2.0
 
-The foundation is published at the canonical public repository. The foundation
-commit is on `main` and local/remote are synchronized. Check GitHub
-authentication, milestones, issues, and Git status before tracking mutations.
+The foundation, public sanitization, GitHub tracking structure, branch
+rulesets, and local secret-file ignore rule are published on `main`.
 
-## Completed milestone
+## Completed milestones
 
 Milestone 00 is implemented, validated, committed, and published:
 
@@ -35,25 +34,40 @@ Milestone 00 is implemented, validated, committed, and published:
 - endpoint, metric, configuration, redaction, and lifecycle tests;
 - architecture, security, metrics, roadmap, Grafana, and development docs.
 
-No official Braiins API endpoint or response field has been assumed, and no
-account, worker, reward, or payout collector exists.
+Milestone 01 is documentation-backed API discovery:
 
-## Foundation validation
+- `docs/API_DISCOVERY.md` records official Braiins Pool API evidence,
+  endpoints, authentication, rate-limit guidance, schema notes, precision
+  decisions, sanitized-fixture provenance, and unknowns;
+- `internal/braiins` contains the minimal request/response boundary, documented
+  endpoint constants, precision-preserving decimal text, typed wire schemas,
+  bounded response reading, and redacted errors;
+- `testdata/braiins/` contains synthetic fixtures shaped from official
+  documentation examples, not raw account responses;
+- redaction and fixture-decoding tests are offline and require no token.
 
-On 2026-07-26, Milestone 00 was committed and pushed as
-`a2b410f28b31834283e779913891d2b3584c026b` (`feat: establish braiins pool
-exporter foundation`). Local `main` and `origin/main` are synchronized and the
-working tree is clean. The repository is public. Milestone 01 has not started.
-GitHub CLI authentication is currently invalid and must be repaired by the
-user before any approved tracking mutation. The earlier race-test limitation
-(CGO/gcc unavailable) and unavailable local `golangci-lint` remain recorded
-validation caveats.
+No account, worker, reward, payout, polling, cache, or retry collector exists.
+
+## Validation caveats
+
+Live API validation remains blocked until `BRAIINS_POOL_TOKEN` or
+`BRAIINS_POOL_TOKEN_FILE` is explicitly set in the process. The ignored
+`SECRETS.md` file is not an implicit credential source.
+
+If CGO or `gcc` is unavailable, race-test limitations must be reported with the
+exact command output. Run `golangci-lint run` only if it is already installed
+or installation is explicitly approved.
 
 ## Architecture decisions
 
 - Poll outside Prometheus scrapes and expose an immutable cached snapshot.
 - Keep API transport/schema in `internal/braiins` and metrics in
   `internal/collector`.
+- Use the documented `Pool-Auth-Token` header; `X-Pool-Auth-Token` is
+  documented as an alternative but not used by default.
+- Preserve BTC amounts and high-precision hashrates as decimal text at the
+  wire boundary.
+- Treat documented Unix timestamps as seconds; do not use timestamps as labels.
 - Liveness never depends on the remote API.
 - Revisit readiness after first-poll and staleness semantics are designed.
 - Never represent historic event dates as current-sample labels.
@@ -61,33 +75,13 @@ validation caveats.
   dashboards.
 - Accept tokens only through environment or mounted file, never CLI flags.
 
-## Open milestones
-
-See `docs/ROADMAP.md`. The remote and foundation push are complete. Before
-tracking creation, verify authenticated GitHub access and obtain approval for
-the exact manifest. The next development task is Milestone 01, Braiins API
-Discovery. It has not started. Do not start collectors until the official API
-contract and redaction behavior are verified.
-
 ## GitHub tracking
 
-The approved model contains exactly ten milestones, numbered 00 through 09,
-and exactly twelve future GitHub issues: one parent issue without a milestone
-and eleven deliverable issues. Milestones 00–08 each have one deliverable;
-Milestone 09 has two separate production integration issues. There is no
-Milestone 10.
-
-No GitHub tracking objects have been created. GitHub CLI authentication is
-currently invalid, so tracking creation remains blocked until the user repairs
-authentication. The approved structure is recorded in
-`docs/GITHUB_TRACKING.md`; do not create an empty project board.
-
-The next actions after this correction are:
-
-1. review, commit, and push the documentation patch under the required approval
-   gates;
-2. repair GitHub CLI authentication;
-3. create the approved tracking objects from the reconciled manifest.
+The repository has exactly ten milestones, 00 through 09, and exactly twelve
+issues: one parent and eleven deliverables. Milestone 00 is closed. Milestone
+01 should be closed only after the Milestone 01 commit is pushed and issue #2
+is updated with completion evidence. Issue #3 and Milestone 02 must remain open
+until account collector work is explicitly started.
 
 ## Validation commands
 
@@ -98,34 +92,34 @@ go version
 go mod tidy
 gofmt -w .
 go vet ./...
-go test ./...
-go test -race ./...
-go build ./cmd/braiins-pool-exporter
+go test -count=1 ./...
+go test -race -count=1 ./...
+go build -buildvcs=false -o bin/braiins-pool-exporter.exe ./cmd/braiins-pool-exporter
 git diff --check
 git status --short --branch
 ```
 
-Run `golangci-lint run` only if it is already installed or installation has
-been explicitly approved. Manually start the service, request all four
-endpoints, and interrupt it to verify clean shutdown.
+Manually start the service, request `/metrics`, `/-/healthy`, `/-/ready`, and
+`/version`, then interrupt it to verify clean shutdown and sanitized logs.
 
 ## Security constraints
 
 - Never print or commit a live token or unsanitized live response.
 - Never put a token in a command-line argument, URL, label, error, or panic.
 - Never include wallet private keys or seed phrases.
-- Sanitize account identifiers, payout addresses, transaction IDs, and
-  operator-sensitive values from fixtures.
+- Sanitize account identifiers, payout addresses, transaction IDs, invoices,
+  preimages, worker names, and operator-sensitive values from fixtures.
 - Use only official Braiins documentation for discovery.
 - Do not scrape or automate the Braiins website.
 - Do not modify Helm, Kubernetes, miners, firmware, or pool settings.
 
 ## Known API unknowns
 
-Official endpoints, authentication transport, coin path/parameter behavior,
-profile and worker schemas, rewards/payout schemas, pagination, date ranges,
-rate limits, numeric encoding, optional fields, worker states, timestamps,
-balances, and payout thresholds all remain unverified.
+Live behavior remains unverified for missing or invalid tokens, unsupported
+coins, exact error bodies, response content types, empty result shapes,
+pagination headers or cursors, rate-limit status codes, nullable profile or
+worker fields, and whether documented sample/table type discrepancies appear
+in real responses.
 
 ## Expected future-session report
 

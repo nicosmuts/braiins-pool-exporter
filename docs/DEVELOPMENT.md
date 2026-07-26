@@ -50,6 +50,12 @@ Do not infer the contract from memory. Use official documentation in Milestone
 01, capture only sanitized fixtures, document optional fields and numeric
 encoding, and finalize metric semantics before adding collectors.
 
+Milestone 01 records the current API discovery matrix in
+`docs/API_DISCOVERY.md`. To perform live read-only validation in a future
+session, export exactly one of `BRAIINS_POOL_TOKEN` or
+`BRAIINS_POOL_TOKEN_FILE` in the shell running the validation. Do not pass a
+token as a command argument and do not copy raw responses into the repository.
+
 ## Build metadata
 
 The variables in `internal/version` are safe linker injection points. A later

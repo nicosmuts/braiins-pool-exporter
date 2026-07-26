@@ -10,6 +10,9 @@ and this project intends to follow
 
 ### Added
 
+- Milestone 01 Braiins Pool API discovery documentation, sanitized fixtures,
+  minimal API client boundary, precision-preserving wire types, and redaction
+  tests.
 - Milestone 00 repository and Go service foundation.
 - Health, readiness, version, and metrics endpoints.
 - Exporter build information and readiness metrics.

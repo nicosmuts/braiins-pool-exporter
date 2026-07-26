@@ -5,8 +5,8 @@ data from the official Braiins Pool API.
 
 > [!IMPORTANT]
 > This project is under active development. No stable release exists, and the
-> Braiins API integration has not started. Milestone 00 exposes only exporter
-> self-metrics.
+> Braiins API contract is documented for Milestone 01, but API-derived
+> collectors have not started. The running exporter exposes only self-metrics.
 
 This independent exporter is designed for Braiins Pool users and keeps
 environment-specific addresses, worker mappings, credentials, and dashboards
@@ -22,10 +22,11 @@ Milestone 00 provides:
 - environment- or file-based secret loading with redaction safeguards;
 - graceful shutdown and unit tests.
 
-Future milestones will verify the official API before implementing account,
-worker, reward, or payout metrics. Candidate metrics are documented in
-[docs/METRICS.md](docs/METRICS.md), but they are not yet a compatibility
-promise.
+Milestone 01 records the documented official API contract in
+[docs/API_DISCOVERY.md](docs/API_DISCOVERY.md). Future milestones will use
+that contract before implementing account, worker, reward, or payout metrics.
+Proposed metrics are documented in [docs/METRICS.md](docs/METRICS.md), but
+they are not implemented yet.
 
 ## Quick start
 
@@ -106,6 +107,8 @@ Equivalent commands are documented in
 ## Roadmap and dashboard
 
 - [docs/ROADMAP.md](docs/ROADMAP.md) defines Milestones 00 through 09.
+- [docs/API_DISCOVERY.md](docs/API_DISCOVERY.md) records the Milestone 01 API
+  evidence and unknowns.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) records component boundaries.
 - [grafana/README.md](grafana/README.md) reserves the reusable dashboard
   identity without querying speculative metrics.
