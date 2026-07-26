@@ -1,0 +1,59 @@
+name: Project deliverable
+description: Track a milestone or major deliverable.
+title: ""
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: Never include tokens, private API responses, payout addresses, or personal data.
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What outcome should this issue deliver?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What work is included?
+    validations:
+      required: true
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Non-goals
+      description: What is explicitly excluded?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Provide a verifiable checklist.
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Link prerequisite issues, decisions, images, or repositories.
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation
+      description: List exact automated and manual checks.
+    validations:
+      required: true
+  - type: textarea
+    id: security
+    attributes:
+      label: Security considerations
+      description: Describe secret, privacy, cardinality, and permission concerns.
+    validations:
+      required: true

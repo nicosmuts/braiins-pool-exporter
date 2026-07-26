@@ -1,0 +1,19 @@
+# Build outputs
+/bin/
+/braiins-pool-exporter
+/braiins-pool-exporter.exe
+*.test
+*.out
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.local
+secrets/
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
