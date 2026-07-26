@@ -161,8 +161,16 @@ issue and pull request templates; workflow concurrency; current Node 24-based
 GitHub Action majors; and `docs/RELEASE.md` as the release checklist and
 procedure.
 
-No Kubernetes, Helm, production deployment, release tag, or released version
-exists.
+Milestone 08 prepares `v0.0.1` as the first public development release. The
+release notes must describe account, worker, reward, and payout metrics;
+hardened polling, caching, retries, and rate-limit handling; the default
+Grafana dashboard; the production Docker image; the Docker Compose
+exporter/Prometheus/Grafana stack; CI, race testing, Dependabot, SBOM, and
+provenance; and the warning that interfaces and metrics may still change before
+`v0.1.0`.
+
+No Kubernetes, Helm, production deployment, release tag, or stable production
+release exists.
 
 ## Validation caveats
 
@@ -288,10 +296,10 @@ the checked response, nullable worker fields beyond the checked response,
 future reward/payout schema additions, and the correct daily-hashrate group
 selector.
 
-Milestone 08 is the next implementation boundary and should prepare the first
-public release after Milestone 07 is fully validated and tracked. Do not create
-release tags, publish images manually, modify deployment manifests, or begin
-production integration before the corresponding approvals and milestones.
+Milestone 08 is the active release boundary for `v0.0.1` and should complete
+the first public development release only after all validation, security, CI,
+tag, release, image, and GitHub tracking checks pass. Do not begin production
+integration before the corresponding approvals and milestones.
 
 ## Expected future-session report
 

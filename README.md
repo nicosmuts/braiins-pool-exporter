@@ -42,10 +42,13 @@ outside the public repository.
 ## Project status
 
 - Active development.
+- Initial public development release `v0.0.1` prepared for public review and
+  early integration testing.
 - Official API contract verified for the currently implemented collectors.
 - Default Grafana dashboard available.
 - Docker Compose development stack available.
-- Stable releases are not yet published.
+- Stable production compatibility is not yet declared; interfaces and metrics
+  may change before `v0.1.0`.
 - Tag-gated container publishing and GitHub Releases are configured.
 
 ## Features
@@ -230,8 +233,8 @@ ghcr.io/nicosmuts/braiins-pool-exporter
 ```
 
 The release workflow publishes semantic-version tags and `latest`, attaches
-OCI metadata, and creates a GitHub Release. Do not create release tags until
-the release contents are reviewed.
+OCI metadata, and creates a GitHub Release. `v0.0.1` is the first public
+development release and is not a stable production compatibility guarantee.
 
 ## Metrics
 

@@ -1,19 +1,37 @@
 # Release process
 
-This project has not published a stable release yet. Do not create a tag,
-GitHub Release, or public package image until the Milestone 08 release review is
-complete and explicitly approved.
+This project has not published a stable production release yet. The `v0.0.1`
+release is the first public development release for public review, local
+validation, and early integration testing. It is not a production-stability
+declaration, and interfaces, configuration behavior, image metadata, and
+Prometheus metrics may still change before `v0.1.0`.
 
 ## Versioning policy
 
-The project intends to follow Semantic Versioning after the first release.
+The project intends to follow Semantic Versioning for public release tags.
 
-- The first release target is `v0.1.0`.
+- The first public development release is `v0.0.1`.
+- The first planned stable pre-1.0 compatibility target is `v0.1.0`.
 - Tags must use the `vMAJOR.MINOR.PATCH` form, for example `v0.1.0`.
 - Metric names, types, units, and label sets are treated as compatibility
-  contracts once a release is published.
+  contracts for a released line, but the `v0.0.x` development line may still
+  change before `v0.1.0`.
 - Breaking metric or configuration changes require clear changelog and release
   notes.
+
+## v0.0.1 release notes
+
+`v0.0.1` is the initial public development release of Braiins Pool Exporter. It
+includes account, worker, reward, and payout collectors for the official Braiins
+Pool API; hardened polling, caching, retry, backoff, and rate-limit behavior;
+the default Grafana dashboard; a production-oriented Docker image; and a Docker
+Compose stack with exporter, Prometheus, and Grafana.
+
+The release also includes CI validation, Linux race testing, Dependabot
+coverage for project dependencies, tag-gated GHCR publishing, and BuildKit SBOM
+and provenance attestations for the published container image. It remains an
+initial development release: do not treat it as a stable production interface,
+and expect possible metric or configuration refinements before `v0.1.0`.
 
 ## Image policy
 
@@ -82,8 +100,8 @@ After approval:
 git fetch origin
 git checkout main
 git pull --ff-only
-git tag v0.1.0
-git push origin v0.1.0
+git tag -a v0.0.1 -m "v0.0.1"
+git push origin v0.0.1
 ```
 
 The tag push triggers the release workflow. Do not manually publish images or

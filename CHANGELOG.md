@@ -8,8 +8,34 @@ and this project intends to follow
 
 ## [Unreleased]
 
+## [0.0.1] - 2026-07-27
+
+Initial public development release. This release is suitable for public review,
+local validation, and early integration testing, but it is not a stable
+production declaration. Interfaces, configuration behavior, image metadata, and
+the Prometheus metric contract may still change before `v0.1.0`.
+
 ### Added
 
+- Account metrics for account hashrate windows, balance, worker counts,
+  account API freshness, and readiness-aware first snapshot behavior.
+- Worker metrics with bounded worker labels, normalized worker states,
+  hashrate/share windows, last-share timestamps, and independent worker API
+  freshness.
+- Reward and payout summaries with bounded history windows, exact BTC reward
+  aggregation, integer satoshi payout aggregation, safe labels, and no payout
+  addresses, transaction identifiers, or event timestamps as labels.
+- Hardened polling with serialized poll cycles, bounded retries/backoff,
+  `Retry-After` handling for HTTP 429, redirect refusal, cancellation-aware
+  waits, bounded public error categories, capped reward/payout records, and
+  stale-but-visible cache behavior.
+- Default Grafana dashboard for exporter readiness, API health/freshness,
+  account, worker, reward, and payout metrics.
+- Production-oriented Docker image and Docker Compose stack for exporter,
+  Prometheus, and Grafana local validation.
+- CI, Docker build validation, Linux race testing, Dependabot dependency
+  tracking, tag-gated release automation, and container SBOM/provenance
+  publishing.
 - Pre-release repository hardening with Dependabot for Go modules, GitHub
   Actions, Dockerfile, and Docker Compose dependencies; improved GitHub issue
   and pull request templates; workflow concurrency; and a documented first
@@ -51,3 +77,4 @@ and this project intends to follow
 - Secure configuration skeleton and project documentation.
 
 [Unreleased]: https://github.com/nicosmuts/braiins-pool-exporter/commits/main
+[0.0.1]: https://github.com/nicosmuts/braiins-pool-exporter/releases/tag/v0.0.1
