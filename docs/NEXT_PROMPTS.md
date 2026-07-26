@@ -3,6 +3,21 @@
 These prompts deliberately stop at one milestone. Before any work, read the
 workspace and repository `AGENTS.md` files and obey their approval gates.
 
+## Prompt mapping
+
+- Prompt 2 → Milestone 01
+- Prompt 3 → Milestone 02
+- Prompt 4 → Milestone 03
+- Prompt 5 → Milestone 04
+- Prompt 6 → Milestone 06
+- Prompt 7 → Milestone 07
+- Prompt 8 → Milestone 09, GitOps deployment phase
+- Prompt 9 → Milestone 09, workshop mining dashboard phase
+
+This file currently has no continuation prompt for Milestone 05 or Milestone
+08. Prompts 8 and 9 are two deliverables within Milestone 09; Prompt 9 does not
+define Milestone 10.
+
 ## Prompt 2 — Braiins API Discovery
 
 ```text
@@ -384,5 +399,5 @@ Acceptance criteria:
 Final report: dashboard structure, complete query/formula mapping, data
 sources, assumptions, visual evidence, files changed, exact validation, privacy
 and security review, git status, rollout/rollback plan, and approvals still
-required. Stop after the workshop dashboard milestone.
+required. Stop after the workshop dashboard phase of Milestone 09.
 ```

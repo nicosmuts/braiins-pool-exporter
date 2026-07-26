@@ -5,8 +5,9 @@ explains the durable stage boundaries.
 
 ## Milestone 00 — Repository Foundation
 
-Status: implemented and validated; the initial commit, push, and remote
-tracking await the required human approvals and authenticated GitHub CLI.
+Status: implemented, validated, committed, and published. GitHub milestone and
+issue tracking remains to be created after the required approval and
+authenticated GitHub access.
 
 Bootstrap the repository, Go module, documentation, HTTP lifecycle, exporter
 self-metrics, secure configuration skeleton, and local validation. No Braiins

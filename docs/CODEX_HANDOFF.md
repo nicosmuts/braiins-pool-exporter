@@ -17,15 +17,14 @@ Braiins Pool API without leaking secrets or adding workshop-specific behavior.
 - Toolchain: Go 1.26.4
 - License: Apache-2.0
 
-The working tree was migrated intact from the former Smuts Tech workspace
-location before publication. Check GitHub authentication, remote state,
-milestones, issues, and Git status rather than assuming publication completed.
-Repository policy requires a human review checkpoint before the initial commit
-and a separate approval before push.
+The working tree was migrated intact from the former Smuts Tech workspace and
+published at the canonical public repository. The foundation commit is on
+`main` and local/remote are synchronized. Check GitHub authentication,
+milestones, issues, and Git status before tracking mutations.
 
 ## Completed milestone
 
-Milestone 00 is implemented locally:
+Milestone 00 is implemented, validated, committed, and published:
 
 - standalone Go module and public-project governance;
 - `net/http` service with `/metrics`, `/-/healthy`, `/-/ready`, and `/version`;
@@ -43,34 +42,14 @@ account, worker, reward, or payout collector exists.
 
 ## Foundation validation
 
-On 2026-07-26:
-
-- the working tree was moved intact from
-  `C:\Users\Nico\dev\smuts-tech\braiins-pool-exporter` to the canonical local
-  path, and the old path no longer exists;
-- the module and all internal imports were migrated from
-  `github.com/smuts-tech/braiins-pool-exporter` to
-  `github.com/nicosmuts/braiins-pool-exporter`;
-- `origin` was configured as
-  `https://github.com/nicosmuts/braiins-pool-exporter.git`;
-- the canonical GitHub repository was confirmed publicly readable and empty
-  through an unauthenticated `git ls-remote`;
-- `go mod tidy`, `gofmt`, `go vet ./...`, `go test -count=1 ./...`, and
-  `git diff --check` passed;
-- the binary built with `-buildvcs=false`, which is necessary until the
-  repository has its first commit;
-- a live local smoke test returned HTTP 200 for all four endpoints, exposed
-  both exporter self-metrics, and did not log the placeholder token;
-- the server lifecycle test exercised graceful startup and shutdown;
-- `go test -race ./...` could not run because CGO is disabled, and enabling it
-  failed because `gcc` is not installed;
-- `golangci-lint` and GNU Make were not installed, so their targets were not
-  executed.
-
-GitHub CLI authentication still needs to be valid before GitHub issue and
-milestone mutations. After the approved initial commit, rerun the exact build
-command without `-buildvcs=false` and run race/lint checks in CI or an
-environment with the required tools.
+On 2026-07-26, Milestone 00 was committed and pushed as
+`a2b410f28b31834283e779913891d2b3584c026b` (`feat: establish braiins pool
+exporter foundation`). Local `main` and `origin/main` are synchronized and the
+working tree is clean. The repository is public. Milestone 01 has not started.
+GitHub CLI authentication is currently invalid and must be repaired by the
+user before any approved tracking mutation. The earlier race-test limitation
+(CGO/gcc unavailable) and unavailable local `golangci-lint` remain recorded
+validation caveats.
 
 ## Architecture decisions
 
@@ -85,16 +64,30 @@ environment with the required tools.
 
 ## Open milestones
 
-See `docs/ROADMAP.md`. First finish GitHub authentication, remote/tracking
-creation, the required commit review, and the separately approved push. The
-next development task is then Milestone 01, Braiins API Discovery. Do not start
-collectors until the official API contract and redaction behavior are verified.
+See `docs/ROADMAP.md`. The remote and foundation push are complete. Before
+tracking creation, verify authenticated GitHub access and obtain approval for
+the exact manifest. The next development task is Milestone 01, Braiins API
+Discovery. It has not started. Do not start collectors until the official API
+contract and redaction behavior are verified.
 
 ## GitHub tracking
 
-The expected parent and milestone issue structure is recorded in
-`docs/GITHUB_TRACKING.md`. Replace this note with actual issue and milestone
-links after authenticated creation. Do not create an empty project board.
+The approved model contains exactly ten milestones, numbered 00 through 09,
+and exactly twelve future GitHub issues: one parent issue without a milestone
+and eleven deliverable issues. Milestones 00–08 each have one deliverable;
+Milestone 09 has two separate workshop issues. There is no Milestone 10.
+
+No GitHub tracking objects have been created. GitHub CLI authentication is
+currently invalid, so tracking creation remains blocked until the user repairs
+authentication. The approved structure is recorded in
+`docs/GITHUB_TRACKING.md`; do not create an empty project board.
+
+The next actions after this correction are:
+
+1. review, commit, and push the documentation patch under the required approval
+   gates;
+2. repair GitHub CLI authentication;
+3. create the approved tracking objects from the reconciled manifest.
 
 ## Validation commands
 
