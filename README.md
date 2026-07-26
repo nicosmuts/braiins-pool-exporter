@@ -16,7 +16,7 @@
   <a href="https://github.com/nicosmuts/braiins-pool-exporter/blob/main/go.mod"><img alt="Go version" src="https://img.shields.io/github/go-mod/go-version/nicosmuts/braiins-pool-exporter?logo=go"></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/nicosmuts/braiins-pool-exporter"></a>
   <a href="https://github.com/nicosmuts/braiins-pool-exporter/releases"><img alt="Release" src="https://img.shields.io/github/v/release/nicosmuts/braiins-pool-exporter?display_name=tag&sort=semver"></a>
-  <a href="docs/RELEASE.md"><img alt="GHCR publishing" src="https://img.shields.io/badge/GHCR-tag--gated-2496ED?logo=github&logoColor=white"></a>
+  <a href="https://github.com/nicosmuts/braiins-pool-exporter/pkgs/container/braiins-pool-exporter"><img alt="GHCR image" src="https://img.shields.io/badge/Docker-0.0.1-2496ED?logo=docker&logoColor=white"></a>
 </p>
 
 <p align="center">
