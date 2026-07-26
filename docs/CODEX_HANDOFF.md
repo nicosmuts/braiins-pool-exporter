@@ -75,8 +75,28 @@ Milestone 03 implements the worker collector:
   staleness independently from account freshness;
 - worker first-poll failure does not block account readiness.
 
-No reward, payout, retry/backoff, dashboard, container, release, or deployment
-work exists.
+Milestone 04 implements rewards and payouts:
+
+- rewards and payouts are enabled by default when account collection is
+  enabled and can be disabled independently;
+- `BRAIINS_POOL_HISTORY_DAYS` controls the inclusive UTC date window,
+  defaulting to seven days and capped at 90 days;
+- the collector performs one date-filtered request per endpoint because no
+  pagination parameters or metadata are documented or live-observed;
+- exact repeated records inside a response are deduplicated internally without
+  exporting event identifiers;
+- BTC reward components are aggregated with exact decimal arithmetic and
+  converted to `float64` only for Prometheus exposition;
+- payout amounts and fees are aggregated as integer satoshis with overflow
+  checks;
+- reward dates, payout timestamps, destinations, transaction IDs, invoices,
+  preimages, financial account names, and event identifiers are never metric
+  labels;
+- rewards and payouts have independent last-known-good snapshots, request
+  counters, freshness metrics, and failure behavior;
+- rewards and payouts do not block readiness.
+
+No retry/backoff, dashboard, container, release, or deployment work exists.
 
 ## Validation caveats
 
@@ -117,6 +137,8 @@ or installation is explicitly approved.
   snapshot; later staleness is observable through data age.
 - Worker freshness is independent from account freshness and worker polling
   does not block readiness.
+- Rewards and payouts use rolling bounded-window summaries, not historic event
+  labels or backfill samples.
 - Never represent historic event dates as current-sample labels.
 - Keep public dashboard logic separate from deployment-specific composite
   dashboards.
@@ -152,6 +174,9 @@ Without a token, account metrics must be absent. With a safely configured
 token file, account metrics appear only after a successful profile poll.
 Worker metrics appear after a successful worker poll unless disabled with
 `BRAIINS_POOL_WORKER_METRICS_ENABLED=false`.
+Rewards and payouts metrics appear after each endpoint's first successful poll
+unless disabled with `BRAIINS_POOL_REWARDS_ENABLED=false` or
+`BRAIINS_POOL_PAYOUTS_ENABLED=false`.
 
 ## Security constraints
 
@@ -169,11 +194,14 @@ Worker metrics appear after a successful worker poll unless disabled with
 Live behavior remains unverified for blank tokens, unsupported coins,
 alternate auth header behavior, empty result shapes for workers, pagination
 headers or cursors, rate-limit status codes, nullable profile fields beyond
-the checked response, nullable worker fields beyond the checked response, and
-the correct daily-hashrate group selector.
+the checked response, nullable worker fields beyond the checked response,
+future reward/payout schema additions, and the correct daily-hashrate group
+selector.
 
-Milestone 04 is the next implementation boundary and should add only verified
-reward and payout summaries after making a deliberate bounded history decision.
+Milestone 05 is the next implementation boundary and should add only exporter
+hardening such as bounded retry/backoff and rate-limit handling. Do not begin
+dashboard, container, release, or deployment work before the corresponding
+milestones.
 
 ## Expected future-session report
 

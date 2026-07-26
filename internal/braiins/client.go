@@ -197,6 +197,22 @@ func (c *Client) Workers(ctx context.Context, coin string) (CoinEnvelope[Workers
 	return workers, err
 }
 
+// Rewards fetches the authenticated daily rewards for the selected coin and
+// inclusive Braiins date window.
+func (c *Client) Rewards(ctx context.Context, coin, fromDate, toDate string) (CoinEnvelope[RewardsResponse], error) {
+	var rewards CoinEnvelope[RewardsResponse]
+	err := c.DoJSON(ctx, Request{Endpoint: EndpointRewards, Coin: coin, FromDate: fromDate, ToDate: toDate}, &rewards)
+	return rewards, err
+}
+
+// Payouts fetches the authenticated payouts for the selected coin and
+// inclusive Braiins date window.
+func (c *Client) Payouts(ctx context.Context, coin, fromDate, toDate string) (PayoutsResponse, error) {
+	var payouts PayoutsResponse
+	err := c.DoJSON(ctx, Request{Endpoint: EndpointPayouts, Coin: coin, FromDate: fromDate, ToDate: toDate}, &payouts)
+	return payouts, err
+}
+
 // StatusError describes a non-2xx response without exposing a response body.
 type StatusError struct {
 	StatusCode  int

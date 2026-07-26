@@ -49,6 +49,13 @@ cardinality is bounded by `BRAIINS_POOL_MAX_WORKERS`, label length is capped,
 blank labels are rejected, and unknown worker states are mapped to the bounded
 `unknown` state instead of becoming arbitrary labels.
 
+Milestone 04 rewards and payouts collection exposes only bounded summary
+labels: reward component, payout rail, and normalized payout status. Reward
+dates, payout timestamps, payout destinations, transaction IDs, Lightning
+invoices, preimages, financial account names, and event identifiers are used
+neither as labels nor as public fixture values. Deduplication keys are internal
+to snapshot construction and are not logged or exported.
+
 ## Required future tests
 
 Milestone 01 adds token-redaction tests covering request construction, unsafe

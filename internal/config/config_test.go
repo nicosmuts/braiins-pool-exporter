@@ -30,6 +30,15 @@ func TestDefault(t *testing.T) {
 	if cfg.MaxWorkers != 100 {
 		t.Fatalf("MaxWorkers = %d, want 100", cfg.MaxWorkers)
 	}
+	if !cfg.RewardsEnabled {
+		t.Fatal("RewardsEnabled = false, want true")
+	}
+	if !cfg.PayoutsEnabled {
+		t.Fatal("PayoutsEnabled = false, want true")
+	}
+	if cfg.HistoryDays != 7 {
+		t.Fatalf("HistoryDays = %d, want 7", cfg.HistoryDays)
+	}
 }
 
 func TestLoadRejectsInvalidConfiguration(t *testing.T) {
@@ -66,6 +75,21 @@ func TestLoadRejectsInvalidConfiguration(t *testing.T) {
 		}},
 		{name: "zero max workers", env: map[string]string{
 			"BRAIINS_POOL_MAX_WORKERS": "0",
+		}},
+		{name: "invalid rewards enabled", env: map[string]string{
+			"BRAIINS_POOL_REWARDS_ENABLED": "sometimes",
+		}},
+		{name: "invalid payouts enabled", env: map[string]string{
+			"BRAIINS_POOL_PAYOUTS_ENABLED": "sometimes",
+		}},
+		{name: "invalid history days", env: map[string]string{
+			"BRAIINS_POOL_HISTORY_DAYS": "many",
+		}},
+		{name: "zero history days", env: map[string]string{
+			"BRAIINS_POOL_HISTORY_DAYS": "0",
+		}},
+		{name: "oversized history days", env: map[string]string{
+			"BRAIINS_POOL_HISTORY_DAYS": "91",
 		}},
 	}
 

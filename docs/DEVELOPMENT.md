@@ -56,6 +56,14 @@ Use `BRAIINS_POOL_MAX_WORKERS` to lower the accepted worker-cardinality limit
 for local tests. Worker names are emitted as runtime metric labels, so do not
 copy live worker output into public files.
 
+Milestone 04 rewards and payouts metrics are also enabled by default with
+account collection. Set `BRAIINS_POOL_REWARDS_ENABLED=false` or
+`BRAIINS_POOL_PAYOUTS_ENABLED=false` to disable either endpoint. Use
+`BRAIINS_POOL_HISTORY_DAYS` to change the inclusive UTC date window; accepted
+values are 1 through 90 days. Do not copy live reward dates, payout
+destinations, transaction IDs, Lightning invoices, preimages, account names,
+or financial history into public files.
+
 ## Adding API behavior
 
 Do not infer the contract from memory. Use official documentation in Milestone
@@ -63,9 +71,10 @@ Do not infer the contract from memory. Use official documentation in Milestone
 encoding, and finalize metric semantics before adding collectors.
 
 Milestone 01 records the current API discovery matrix in
-`docs/API_DISCOVERY.md`. Milestones 02 and 03 implement only profile-backed
-account metrics and worker metrics. To perform live read-only validation in a
-future session, export exactly one of `BRAIINS_POOL_TOKEN` or
+`docs/API_DISCOVERY.md`. Milestones 02, 03, and 04 implement profile-backed
+account metrics, worker metrics, and bounded rewards/payouts summaries. To
+perform live read-only validation in a future session, export exactly one of
+`BRAIINS_POOL_TOKEN` or
 `BRAIINS_POOL_TOKEN_FILE` in the shell running the validation. Do not pass a
 token as a command argument and do not copy raw responses into the repository.
 

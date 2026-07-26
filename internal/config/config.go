@@ -20,6 +20,8 @@ const (
 	defaultPollInterval  = time.Minute
 	defaultTimeout       = 10 * time.Second
 	defaultMaxWorkers    = 100
+	defaultHistoryDays   = 7
+	maxHistoryDays       = 90
 )
 
 // Secret prevents an API token from being exposed by common formatting.
@@ -48,6 +50,9 @@ type Config struct {
 
 	WorkerMetricsEnabled bool
 	MaxWorkers           int
+	RewardsEnabled       bool
+	PayoutsEnabled       bool
+	HistoryDays          int
 }
 
 // SafeSummary is a deliberately non-sensitive view suitable for logs.
@@ -62,6 +67,9 @@ type SafeSummary struct {
 	Timeout       time.Duration
 	WorkerMetrics bool
 	MaxWorkers    int
+	Rewards       bool
+	Payouts       bool
+	HistoryDays   int
 }
 
 // Environment provides dependencies used when loading environment-backed
@@ -83,6 +91,9 @@ func Default() Config {
 		Timeout:              defaultTimeout,
 		WorkerMetricsEnabled: true,
 		MaxWorkers:           defaultMaxWorkers,
+		RewardsEnabled:       true,
+		PayoutsEnabled:       true,
+		HistoryDays:          defaultHistoryDays,
 	}
 }
 
@@ -158,6 +169,18 @@ func Load(args []string, env Environment) (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+	cfg.RewardsEnabled, err = boolEnv(env.LookupEnv, "BRAIINS_POOL_REWARDS_ENABLED", cfg.RewardsEnabled)
+	if err != nil {
+		return Config{}, err
+	}
+	cfg.PayoutsEnabled, err = boolEnv(env.LookupEnv, "BRAIINS_POOL_PAYOUTS_ENABLED", cfg.PayoutsEnabled)
+	if err != nil {
+		return Config{}, err
+	}
+	cfg.HistoryDays, err = intEnv(env.LookupEnv, "BRAIINS_POOL_HISTORY_DAYS", cfg.HistoryDays)
+	if err != nil {
+		return Config{}, err
+	}
 
 	if err := cfg.Validate(); err != nil {
 		return Config{}, err
@@ -196,6 +219,9 @@ func (c Config) Validate() error {
 	if c.MaxWorkers <= 0 {
 		return errors.New("Braiins max workers must be positive")
 	}
+	if c.HistoryDays <= 0 || c.HistoryDays > maxHistoryDays {
+		return fmt.Errorf("Braiins history window must be between 1 and %d days", maxHistoryDays)
+	}
 	if strings.ToLower(strings.TrimSpace(c.Coin)) != "btc" {
 		return errors.New("Braiins coin selector must be btc")
 	}
@@ -233,6 +259,9 @@ func (c Config) Summary() SafeSummary {
 		Timeout:       c.Timeout,
 		WorkerMetrics: c.WorkerMetricsEnabled,
 		MaxWorkers:    c.MaxWorkers,
+		Rewards:       c.RewardsEnabled,
+		Payouts:       c.PayoutsEnabled,
+		HistoryDays:   c.HistoryDays,
 	}
 }
 

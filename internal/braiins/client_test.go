@@ -43,6 +43,41 @@ func TestNewRequestUsesDocumentedHeaderAndRedactsToken(t *testing.T) {
 	}
 }
 
+func TestRewardsAndPayoutsUseBoundedDateQueries(t *testing.T) {
+	t.Parallel()
+
+	var urls []string
+	client, err := NewClient(Config{
+		BaseURL: "https://pool.braiins.com/api",
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			urls = append(urls, req.URL.String())
+			body := `{"btc":{"daily_rewards":[]}}`
+			if strings.Contains(req.URL.Path, "/payouts/") {
+				body = `{"onchain":[],"lightning":[]}`
+			}
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       io.NopCloser(strings.NewReader(body)),
+			}, nil
+		}),
+	})
+	if err != nil {
+		t.Fatalf("NewClient() error = %v", err)
+	}
+	if _, err := client.Rewards(context.Background(), "BTC", "2026-07-20", "2026-07-26"); err != nil {
+		t.Fatalf("Rewards() error = %v", err)
+	}
+	if _, err := client.Payouts(context.Background(), "BTC", "2026-07-20", "2026-07-26"); err != nil {
+		t.Fatalf("Payouts() error = %v", err)
+	}
+	if urls[0] != "https://pool.braiins.com/api/accounts/rewards/json/btc?from=2026-07-20&to=2026-07-26" {
+		t.Fatalf("Rewards URL = %q", urls[0])
+	}
+	if urls[1] != "https://pool.braiins.com/api/accounts/payouts/json/btc?from=2026-07-20&to=2026-07-26" {
+		t.Fatalf("Payouts URL = %q", urls[1])
+	}
+}
+
 func TestClientRejectsUnsafeBaseURLWithoutLeakingToken(t *testing.T) {
 	t.Parallel()
 

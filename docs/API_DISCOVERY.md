@@ -189,6 +189,12 @@ automatic/manual minimum payout is 0.0002 BTC, minimum free payout is 0.005
 BTC, and maximum payout is 5 BTC. Lightning minimum is 1 satoshi and maximum
 is 0.005 BTC. Payout thresholds can be customized for financial accounts.
 
+Milestone 04 implementation note: rewards and payouts are consumed only as
+bounded rolling summaries. BTC reward components are aggregated with exact
+decimal arithmetic before Prometheus exposition. Payout amounts and fees are
+aggregated as integer satoshis. The implementation uses only bounded labels:
+reward `component`, payout `rail`, and normalized payout `status`.
+
 ## Pagination, time ranges, and history
 
 No page-number, cursor, offset, or page-size parameter is documented for the
@@ -196,13 +202,15 @@ verified endpoints, and no pagination metadata was observed in the live
 checkpoint. Date ranges are documented for daily rewards, block rewards, and
 payouts. Daily rewards return the last 90 days by default.
 
-Milestone 02 does not call the unresolved daily-hashrate group endpoint and
-does not use historical reward, block, or payout endpoints.
+Milestones 02 and 03 do not call the unresolved daily-hashrate group endpoint
+and do not use historical reward, block, or payout endpoints.
 
 Historical rewards and payouts remain unsafe as unbounded Prometheus event
-labels. Milestone 04 must prefer current bounded summaries and natural
-Prometheus history unless a separate timestamp-aware ingestion design is
-approved.
+labels. Milestone 04 uses one bounded date-window request per rewards/payouts
+endpoint and natural Prometheus history. It does not invent pagination because
+no page-number, cursor, offset, page-size parameter, or pagination metadata is
+documented or live-observed. A separate timestamp-aware ingestion design would
+be required for future backfill.
 
 ## Numeric and timestamp policy
 

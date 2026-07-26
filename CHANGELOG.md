@@ -10,6 +10,10 @@ and this project intends to follow
 
 ### Added
 
+- Milestone 04 rewards and payouts collector with bounded date-window
+  summaries, exact decimal BTC reward aggregation, integer satoshi payout
+  aggregation, internal deduplication, independent freshness/failure behavior,
+  and documented history/pagination decisions.
 - Milestone 03 worker collector with bounded direct worker labels, worker
   state/hashrate/shares/last-share metrics, worker API freshness, and
   documented disappearance and stale-snapshot behavior.

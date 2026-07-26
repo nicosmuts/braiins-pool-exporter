@@ -43,6 +43,7 @@ func run(args []string) error {
 	registry, selfMetrics := collector.NewRegistry(build)
 	var accountMetrics *collector.AccountMetrics
 	var workerMetrics *collector.WorkerMetrics
+	var historyMetrics *collector.HistoryMetrics
 	if cfg.Token != "" {
 		client, err := braiins.NewClient(braiins.Config{
 			BaseURL: cfg.APIBaseURL,
@@ -73,6 +74,19 @@ func run(args []string) error {
 			}
 			collector.RegisterWorkerMetrics(registry, workerMetrics)
 		}
+		if cfg.RewardsEnabled || cfg.PayoutsEnabled {
+			historyMetrics, err = collector.NewHistoryMetrics(collector.HistoryOptions{
+				Client:         client,
+				Coin:           cfg.Coin,
+				HistoryDays:    cfg.HistoryDays,
+				RewardsEnabled: cfg.RewardsEnabled,
+				PayoutsEnabled: cfg.PayoutsEnabled,
+			})
+			if err != nil {
+				return err
+			}
+			collector.RegisterHistoryMetrics(registry, historyMetrics)
+		}
 	}
 	app := server.New(cfg.ListenAddress, cfg.TelemetryPath, registry, selfMetrics, build)
 	listener, err := app.Listen()
@@ -94,10 +108,18 @@ func run(args []string) error {
 	}()
 	pollCtx, stopPolling := context.WithCancel(context.Background())
 	defer stopPolling()
-	if accountMetrics != nil && workerMetrics != nil {
-		go runAccountAndWorkerPollers(pollCtx, accountMetrics, workerMetrics, cfg.PollInterval)
-	} else if accountMetrics != nil {
-		go accountMetrics.Run(pollCtx, cfg.PollInterval)
+	if accountMetrics != nil {
+		steps := []pollStep{accountMetrics.Poll}
+		if workerMetrics != nil {
+			steps = append(steps, workerMetrics.Poll)
+		}
+		if historyMetrics != nil && historyMetrics.RewardsEnabled() {
+			steps = append(steps, historyMetrics.PollRewards)
+		}
+		if historyMetrics != nil && historyMetrics.PayoutsEnabled() {
+			steps = append(steps, historyMetrics.PollPayouts)
+		}
+		go runPollSteps(pollCtx, cfg.PollInterval, steps)
 	}
 
 	signals := make(chan os.Signal, 1)
@@ -128,24 +150,30 @@ func run(args []string) error {
 	return nil
 }
 
-func runAccountAndWorkerPollers(ctx context.Context, accountMetrics *collector.AccountMetrics, workerMetrics *collector.WorkerMetrics, interval time.Duration) {
+type pollStep func(context.Context) error
+
+func runPollSteps(ctx context.Context, interval time.Duration, steps []pollStep) {
 	if interval <= 0 {
 		interval = time.Minute
 	}
-	pollBoth := func() {
-		_ = accountMetrics.Poll(ctx)
-		timer := time.NewTimer(5 * time.Second)
-		select {
-		case <-ctx.Done():
-			if !timer.Stop() {
-				<-timer.C
+	pollAll := func() {
+		for index, step := range steps {
+			_ = step(ctx)
+			if index == len(steps)-1 {
+				continue
 			}
-			return
-		case <-timer.C:
+			timer := time.NewTimer(5 * time.Second)
+			select {
+			case <-ctx.Done():
+				if !timer.Stop() {
+					<-timer.C
+				}
+				return
+			case <-timer.C:
+			}
 		}
-		_ = workerMetrics.Poll(ctx)
 	}
-	pollBoth()
+	pollAll()
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 	for {
@@ -153,7 +181,7 @@ func runAccountAndWorkerPollers(ctx context.Context, accountMetrics *collector.A
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			pollBoth()
+			pollAll()
 		}
 	}
 }

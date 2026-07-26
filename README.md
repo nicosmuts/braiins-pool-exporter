@@ -5,8 +5,8 @@ data from the official Braiins Pool API.
 
 > [!IMPORTANT]
 > This project is under active development. No stable release exists, and the
-> Milestone 03 implements the worker collector. Reward, payout, dashboard,
-> container, release, and deployment work remain future milestones.
+> Milestone 04 implements bounded rewards and payouts. Dashboard, container,
+> release, and deployment work remain future milestones.
 
 This independent exporter is designed for Braiins Pool users and keeps
 environment-specific addresses, worker mappings, credentials, and dashboards
@@ -25,6 +25,8 @@ The exporter currently provides:
   metrics;
 - optional Braiins worker polling with bounded per-worker state, hashrate,
   shares, last-share, request, and freshness metrics;
+- optional bounded rewards and payouts polling with precision-safe BTC reward
+  aggregation, satoshi payout aggregation, request, and freshness metrics;
 - graceful shutdown and unit tests.
 
 Milestone 01 records the documented official API contract in
@@ -89,6 +91,9 @@ Account collection is enabled by setting exactly one Braiins token source:
 | `BRAIINS_POOL_TIMEOUT` | HTTP timeout, default `10s` |
 | `BRAIINS_POOL_WORKER_METRICS_ENABLED` | Enable worker metrics when a token is configured, default `true` |
 | `BRAIINS_POOL_MAX_WORKERS` | Maximum accepted workers per snapshot, default `100` |
+| `BRAIINS_POOL_REWARDS_ENABLED` | Enable bounded rewards metrics when a token is configured, default `true` |
+| `BRAIINS_POOL_PAYOUTS_ENABLED` | Enable bounded payout metrics when a token is configured, default `true` |
+| `BRAIINS_POOL_HISTORY_DAYS` | Inclusive rewards/payouts date window, default `7`, maximum `90` |
 
 Set only one token source. Command-line token flags are intentionally
 unsupported because process listings can expose their values. For containers
@@ -107,6 +112,13 @@ names may be private operational identifiers; keep the exporter HTTP interface
 private and use `BRAIINS_POOL_WORKER_METRICS_ENABLED=false` if direct worker
 labels are not acceptable for an environment. Worker freshness is independent
 from account freshness and does not block readiness.
+
+Rewards and payouts use one bounded date-window request per endpoint. BTC
+reward values are aggregated as exact decimals and converted to `float64` only
+for Prometheus exposition. Payout amounts and fees remain integer satoshis.
+No reward dates, payout destinations, transaction IDs, Lightning invoices,
+preimages, account names, or event identifiers are exported as labels.
+Rewards and payouts have independent freshness and do not block readiness.
 
 ## Development
 
