@@ -157,7 +157,7 @@ type WorkersResponse struct {
 
 type Worker struct {
 	State           string   `json:"state"`
-	LastShare       int64    `json:"last_share"`
+	LastShare       *int64   `json:"last_share"`
 	HashRateUnit    string   `json:"hash_rate_unit"`
 	HashRateScoring *Decimal `json:"hash_rate_scoring"`
 	HashRate5m      Decimal  `json:"hash_rate_5m"`

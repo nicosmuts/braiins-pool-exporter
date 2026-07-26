@@ -58,8 +58,25 @@ Milestone 02 implements the first account collector:
 - readiness requires a first successful account snapshot only when account
   collection is enabled.
 
-No worker, reward, payout, retry/backoff, dashboard, container, release, or
-deployment work exists.
+Milestone 03 implements the worker collector:
+
+- worker metrics are enabled by default when account collection is enabled;
+- the Braiins API worker name is emitted directly as the bounded `worker`
+  label after privacy/cardinality review;
+- `BRAIINS_POOL_MAX_WORKERS` bounds accepted worker snapshots, defaulting to
+  100 workers;
+- known worker states are `ok`, `low`, `off`, and `dis`; unknown raw states are
+  exposed only as `unknown`;
+- missing optional hashrate, shares, scoring hashrate, and last-share fields
+  are omitted rather than converted to false zero;
+- successful worker responses replace the worker snapshot, so disappeared
+  workers disappear immediately;
+- worker poll failures preserve last-known-good worker metrics and expose
+  staleness independently from account freshness;
+- worker first-poll failure does not block account readiness.
+
+No reward, payout, retry/backoff, dashboard, container, release, or deployment
+work exists.
 
 ## Validation caveats
 
@@ -98,6 +115,8 @@ or installation is explicitly approved.
 - Liveness never depends on the remote API.
 - With account polling enabled, readiness requires one accepted account
   snapshot; later staleness is observable through data age.
+- Worker freshness is independent from account freshness and worker polling
+  does not block readiness.
 - Never represent historic event dates as current-sample labels.
 - Keep public dashboard logic separate from deployment-specific composite
   dashboards.
@@ -131,6 +150,8 @@ Manually start the service, request `/metrics`, `/-/healthy`, `/-/ready`, and
 `/version`, then interrupt it to verify clean shutdown and sanitized logs.
 Without a token, account metrics must be absent. With a safely configured
 token file, account metrics appear only after a successful profile poll.
+Worker metrics appear after a successful worker poll unless disabled with
+`BRAIINS_POOL_WORKER_METRICS_ENABLED=false`.
 
 ## Security constraints
 
@@ -151,8 +172,8 @@ headers or cursors, rate-limit status codes, nullable profile fields beyond
 the checked response, nullable worker fields beyond the checked response, and
 the correct daily-hashrate group selector.
 
-Milestone 03 is the next implementation boundary and should add only the
-verified worker collector after reviewing worker-label privacy and cardinality.
+Milestone 04 is the next implementation boundary and should add only verified
+reward and payout summaries after making a deliberate bounded history decision.
 
 ## Expected future-session report
 

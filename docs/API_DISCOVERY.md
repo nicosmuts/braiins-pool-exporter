@@ -136,6 +136,10 @@ private operator data and must not be copied into fixtures. A future worker
 label may use a sanitized worker identity only after explicit cardinality and
 privacy review.
 
+Milestone 03 completed that review and emits the API worker name directly as a
+bounded `worker` label. This is a runtime operator-data exposure, not a public
+fixture or alias-mapping commitment.
+
 Documented worker states are `ok`, `low`, `off`, and `dis`. The monitoring
 article describes them as OK, Low, Offline, and Disabled. The pool compares
 worker effective hashrate snapshots every five minutes against monitoring
@@ -160,6 +164,11 @@ Unknown after live validation:
 - whether deleted workers remain visible;
 - duplicate or renamed worker behavior;
 - whether `last_share` can be null.
+
+Milestone 03 treats successful worker responses as authoritative snapshots:
+workers absent from a later successful response disappear immediately from
+metrics. Failed worker polls preserve the previous last-known-good worker
+snapshot. The collector does not call the unresolved daily-hashrate endpoint.
 
 ## Rewards and payouts
 

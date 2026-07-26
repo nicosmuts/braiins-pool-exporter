@@ -42,6 +42,7 @@ func run(args []string) error {
 	build := version.Current()
 	registry, selfMetrics := collector.NewRegistry(build)
 	var accountMetrics *collector.AccountMetrics
+	var workerMetrics *collector.WorkerMetrics
 	if cfg.Token != "" {
 		client, err := braiins.NewClient(braiins.Config{
 			BaseURL: cfg.APIBaseURL,
@@ -61,6 +62,17 @@ func run(args []string) error {
 		}
 		collector.RegisterAccountMetrics(registry, accountMetrics)
 		selfMetrics.RequireAccountReady(accountMetrics.Ready)
+		if cfg.WorkerMetricsEnabled {
+			workerMetrics, err = collector.NewWorkerMetrics(collector.WorkerOptions{
+				Client:     client,
+				Coin:       cfg.Coin,
+				MaxWorkers: cfg.MaxWorkers,
+			})
+			if err != nil {
+				return err
+			}
+			collector.RegisterWorkerMetrics(registry, workerMetrics)
+		}
 	}
 	app := server.New(cfg.ListenAddress, cfg.TelemetryPath, registry, selfMetrics, build)
 	listener, err := app.Listen()
@@ -82,7 +94,9 @@ func run(args []string) error {
 	}()
 	pollCtx, stopPolling := context.WithCancel(context.Background())
 	defer stopPolling()
-	if accountMetrics != nil {
+	if accountMetrics != nil && workerMetrics != nil {
+		go runAccountAndWorkerPollers(pollCtx, accountMetrics, workerMetrics, cfg.PollInterval)
+	} else if accountMetrics != nil {
 		go accountMetrics.Run(pollCtx, cfg.PollInterval)
 	}
 
@@ -112,6 +126,36 @@ func run(args []string) error {
 	}
 	logger.Info("exporter stopped")
 	return nil
+}
+
+func runAccountAndWorkerPollers(ctx context.Context, accountMetrics *collector.AccountMetrics, workerMetrics *collector.WorkerMetrics, interval time.Duration) {
+	if interval <= 0 {
+		interval = time.Minute
+	}
+	pollBoth := func() {
+		_ = accountMetrics.Poll(ctx)
+		timer := time.NewTimer(5 * time.Second)
+		select {
+		case <-ctx.Done():
+			if !timer.Stop() {
+				<-timer.C
+			}
+			return
+		case <-timer.C:
+		}
+		_ = workerMetrics.Poll(ctx)
+	}
+	pollBoth()
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			pollBoth()
+		}
+	}
 }
 
 func newLogger(level, format string) *slog.Logger {

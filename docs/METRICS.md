@@ -15,6 +15,16 @@ Never use tokens, wallet or payout addresses, transaction IDs, reward IDs,
 arbitrary error text, full URLs, or dates/timestamps as labels. Worker labels
 must be reviewed for bounded fleet behavior and privacy before release.
 
+Worker-label decision: Milestone 03 emits the Braiins API worker name directly
+as the `worker` label for per-worker metrics. Worker names are user-controlled
+operator identifiers and may encode people, devices, sites, or locations, so
+operators must treat the exporter HTTP surface as private operational data.
+This public exporter does not contain alias mappings because those mappings are
+deployment-specific. Cardinality is bounded by
+`BRAIINS_POOL_MAX_WORKERS` (default `100`), blank labels are rejected, labels
+longer than 128 bytes are rejected, and over-limit successful worker responses
+are rejected as a whole snapshot rather than silently truncated.
+
 ## Implemented in Milestone 00
 
 | Metric | Type | Labels | Meaning |
@@ -42,6 +52,32 @@ first successful account poll, account data metrics are omitted.
 | `braiins_pool_api_last_success_timestamp_seconds` | gauge | `endpoint` | exporter polling state | Unix seconds | emitted only after a successful profile poll |
 | `braiins_pool_data_age_seconds` | gauge | `endpoint` | exporter polling state | seconds | age of latest accepted profile snapshot |
 
+## Implemented in Milestone 03
+
+Worker collection is enabled by default when account collection is enabled and
+can be disabled with `BRAIINS_POOL_WORKER_METRICS_ENABLED=false`. Worker
+polling runs outside Prometheus scrapes. Worker freshness is independent from
+account freshness. Worker poll failures preserve the last-known-good worker
+snapshot and increment bounded request-result categories. Before the first
+successful worker poll, worker data metrics are omitted.
+
+Known worker states are normalized to `ok`, `low`, `off`, and `dis`; blank or
+future unseen states are exposed only as the bounded state value `unknown`.
+Successful worker responses are authoritative: a worker absent from a later
+successful response disappears immediately from per-worker metrics. Failed
+polls preserve the previous snapshot.
+
+| Metric | Type | Labels | Source | Unit/conversion | Behavior |
+|---|---|---|---|---|---|
+| `braiins_pool_worker_state` | gauge | `worker`, `state` | workers: `state` | one-hot state value | emits fixed states `ok`, `low`, `off`, `dis`, `unknown`; unknown raw states are not labels |
+| `braiins_pool_worker_hashrate_ghs` | gauge | `worker`, `window` | workers: `hash_rate_scoring`, `hash_rate_5m`, `hash_rate_60m`, `hash_rate_24h` | source `Gh/s`, export as `Gh/s` | omit missing windows; `hash_rate_scoring` is optional |
+| `braiins_pool_worker_shares` | gauge | `worker`, `window` | workers: `shares_5m`, `shares_60m`, `shares_24h` | rolling-window shares | omit missing windows; not a counter |
+| `braiins_pool_worker_last_share_timestamp_seconds` | gauge | `worker` | workers: `last_share` | Unix seconds | omit if absent or null; no timestamp labels |
+| `braiins_pool_worker_last_share_age_seconds` | gauge | `worker` | workers: `last_share` | seconds | omitted when last-share timestamp is absent |
+| `braiins_pool_api_requests_total` | counter | `endpoint`, `result` | exporter HTTP client | request count | endpoint includes `workers`; result is one of `success`, `unauthorized`, `forbidden`, `http_error`, `timeout`, `canceled`, `malformed`, `limit_exceeded`, or `error` |
+| `braiins_pool_api_last_success_timestamp_seconds` | gauge | `endpoint` | exporter polling state | Unix seconds | emitted for endpoint `workers` only after a successful worker poll |
+| `braiins_pool_data_age_seconds` | gauge | `endpoint` | exporter polling state | seconds | age of latest accepted worker snapshot |
+
 ## Deferred API-derived contract
 
 These metrics are proposed from official documentation and a narrow read-only
@@ -51,10 +87,6 @@ live structural checkpoint, but are not implemented yet unless noted above.
 |---|---|---|---|---|---|---|---|
 | `braiins_pool_account_reward_btc` | gauge | `period` | profile: `today_reward`, `estimated_reward`, `all_time_reward` | decimal BTC string | `estimated` must be clearly named as estimated in help text | 02 | deferred pending naming review |
 | `braiins_pool_account_shares` | gauge | `window` | profile: `shares_5m`, `shares_60m`, `shares_24h`, `shares_yesterday` | rolling-window shares | not a counter because documentation describes active shares in windows | 02 | deferred pending usefulness review |
-| `braiins_pool_worker_state` | gauge | `worker`, `state` | workers: `state` | one-hot state value | worker label requires explicit privacy/cardinality approval | 03 | deferred |
-| `braiins_pool_worker_hashrate_ghs` | gauge | `worker`, `window` | workers: `hash_rate_scoring`, `hash_rate_5m`, `hash_rate_60m`, `hash_rate_24h` | source `Gh/s`, export as `Gh/s` | omit missing windows; stale snapshot explicit through freshness metric | 03 | deferred |
-| `braiins_pool_worker_last_share_timestamp_seconds` | gauge | `worker` | workers: `last_share` | Unix seconds | do not add date labels; worker label requires approval | 03 | deferred |
-| `braiins_pool_worker_shares` | gauge | `worker`, `window` | workers: `shares_5m`, `shares_60m`, `shares_24h` | rolling-window shares | not a counter because values are rolling-window counts | 03 | deferred |
 | `braiins_pool_reward_daily_btc` | gauge | `component` | daily rewards: reward amount fields | decimal BTC string | expose bounded summaries only; no date labels | 04 | deferred |
 | `braiins_pool_payout_amount_sats` | gauge | `rail`, `status` | payouts: `amount_sats` | satoshis | aggregate by rail/status; never label by destination, tx ID, invoice, preimage, or account name | 04 | deferred |
 | `braiins_pool_payout_fee_sats` | gauge | `rail`, `status` | payouts: `fee_sats` | satoshis | aggregate by rail/status | 04 | deferred |

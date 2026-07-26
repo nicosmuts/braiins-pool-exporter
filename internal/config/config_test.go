@@ -24,6 +24,12 @@ func TestDefault(t *testing.T) {
 	if cfg.Coin != "btc" {
 		t.Fatalf("Coin = %q, want btc", cfg.Coin)
 	}
+	if !cfg.WorkerMetricsEnabled {
+		t.Fatal("WorkerMetricsEnabled = false, want true")
+	}
+	if cfg.MaxWorkers != 100 {
+		t.Fatalf("MaxWorkers = %d, want 100", cfg.MaxWorkers)
+	}
 }
 
 func TestLoadRejectsInvalidConfiguration(t *testing.T) {
@@ -51,6 +57,15 @@ func TestLoadRejectsInvalidConfiguration(t *testing.T) {
 		}},
 		{name: "unverified coin", env: map[string]string{
 			"BRAIINS_POOL_COIN": "bch",
+		}},
+		{name: "invalid worker enabled", env: map[string]string{
+			"BRAIINS_POOL_WORKER_METRICS_ENABLED": "sometimes",
+		}},
+		{name: "invalid max workers", env: map[string]string{
+			"BRAIINS_POOL_MAX_WORKERS": "many",
+		}},
+		{name: "zero max workers", env: map[string]string{
+			"BRAIINS_POOL_MAX_WORKERS": "0",
 		}},
 	}
 

@@ -19,3 +19,6 @@ No fixture is a raw account response. Replacements applied:
 Fixtures preserve documented and live-confirmed JSON field names, nesting,
 nullable payout fields, worker state values, and numeric encoding choices.
 No raw live response values remain.
+
+Worker fixture names such as `worker-a` are synthetic labels. They are not raw
+worker names and do not encode a site, person, device, or deployment mapping.

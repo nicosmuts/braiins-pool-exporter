@@ -24,7 +24,7 @@ flags and environment
 When no token is configured, the exporter makes no Braiins network request.
 `main` wires dependencies and signals; behavior lives in internal packages.
 
-## Account polling flow
+## Account and worker polling flow
 
 Milestone 02 adds a bounded account profile poll loop when exactly one token
 source is configured. It uses the `internal/braiins` client with an explicit
@@ -32,11 +32,19 @@ HTTP timeout and context cancellation. Verified profile responses are
 normalized into an immutable last-known-good snapshot owned by
 `internal/collector`.
 
+Milestone 03 adds worker polling using the same client and cache pattern. When
+worker metrics are enabled, startup polling requests the profile first and then
+the workers endpoint after a five-second spacing delay. Subsequent poll cycles
+reuse the configured poll interval and the same conservative spacing. This is a
+small milestone-specific scheduler, not a generic retry/backoff framework.
+
 Prometheus collection never makes Braiins API requests. Scrapes expose the
-cached snapshot, account API request counters, last successful profile poll
-timestamp, and data age. A transient failure leaves the last-known-good account
-metrics visible, with staleness increasing. Before the first successful account
-poll, account data metrics are omitted.
+cached snapshots, API request counters, last successful poll timestamps, and
+data age. A transient failure leaves the last-known-good account or worker
+metrics visible, with staleness increasing. Before the first successful poll
+for a source, that source's data metrics are omitted. A successful worker
+response is authoritative, so disappeared workers are removed immediately from
+the worker snapshot.
 
 ## Milestone 01 API boundary
 
@@ -63,8 +71,9 @@ ignore unknown JSON fields. Optional or nullable behavior that is not yet
 documented remains an explicit gap until live validation proves it.
 
 Rate-limit policy: the documented safe rate is about one request per five
-seconds. Milestone 02 polls one profile endpoint at the configured interval,
-defaulting to one minute. Milestone 05 owns retry and backoff design.
+seconds. Milestone 03 polls the profile and workers endpoints at the configured
+interval, defaulting to one minute, with five seconds between those two
+requests. Milestone 05 owns retry and backoff design.
 
 Fixture policy: committed fixtures are synthetic or field-by-field sanitized,
 with provenance documented under `testdata/braiins/`. Raw private API responses
@@ -78,6 +87,10 @@ also requires at least one accepted account profile snapshot. Transient Braiins
 Pool failures after a successful poll do not flip readiness by themselves; data
 age makes stale last-known-good data observable. Liveness never depends on
 Braiins Pool.
+
+Worker polling does not add a readiness dependency. A worker first-poll failure
+omits worker metrics and increments the bounded workers request result, while a
+valid account snapshot can still make the exporter ready.
 
 ## Dependency direction
 

@@ -10,6 +10,9 @@ and this project intends to follow
 
 ### Added
 
+- Milestone 03 worker collector with bounded direct worker labels, worker
+  state/hashrate/shares/last-share metrics, worker API freshness, and
+  documented disappearance and stale-snapshot behavior.
 - Milestone 02 account collector with profile polling, cached account
   hashrate/balance/worker metrics, API request counters, freshness metrics,
   and account-aware readiness.

@@ -190,6 +190,13 @@ func (c *Client) Profile(ctx context.Context, coin string) (ProfileResponse, err
 	return profile, err
 }
 
+// Workers fetches the authenticated worker list for the selected coin.
+func (c *Client) Workers(ctx context.Context, coin string) (CoinEnvelope[WorkersResponse], error) {
+	var workers CoinEnvelope[WorkersResponse]
+	err := c.DoJSON(ctx, Request{Endpoint: EndpointWorkers, Coin: coin}, &workers)
+	return workers, err
+}
+
 // StatusError describes a non-2xx response without exposing a response body.
 type StatusError struct {
 	StatusCode  int

@@ -40,6 +40,15 @@ names, payout addresses, transaction IDs, raw endpoint URLs, authorization
 headers, or arbitrary error strings. The API request result label is a bounded
 category enum.
 
+Milestone 03 worker collection exposes API worker names directly as the
+`worker` label after an explicit privacy review. Worker names are
+operator-controlled and may be sensitive, so operators must not expose the
+exporter's HTTP interface publicly. The exporter does not include
+deployment-specific alias mappings or worker-to-device mappings. Worker label
+cardinality is bounded by `BRAIINS_POOL_MAX_WORKERS`, label length is capped,
+blank labels are rejected, and unknown worker states are mapped to the bounded
+`unknown` state instead of becoming arbitrary labels.
+
 ## Required future tests
 
 Milestone 01 adds token-redaction tests covering request construction, unsafe

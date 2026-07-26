@@ -47,12 +47,11 @@ type AccountMetrics struct {
 	coin   string
 	clock  Clock
 
-	requestsTotal *prometheus.CounterVec
-
 	mu          sync.RWMutex
 	lastGood    *accountSnapshot
 	lastSuccess time.Time
 	lastError   string
+	requests    map[string]float64
 }
 
 type accountSnapshot struct {
@@ -76,24 +75,16 @@ func NewAccountMetrics(options AccountOptions) (*AccountMetrics, error) {
 		clock = realClock{}
 	}
 	return &AccountMetrics{
-		client: options.Client,
-		coin:   coin,
-		clock:  clock,
-		requestsTotal: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Namespace: "braiins_pool",
-			Subsystem: "api",
-			Name:      "requests_total",
-			Help:      "Total Braiins Pool API requests by bounded endpoint and result.",
-		}, []string{"endpoint", "result"}),
+		client:   options.Client,
+		coin:     coin,
+		clock:    clock,
+		requests: make(map[string]float64),
 	}, nil
 }
 
 // RegisterAccountMetrics registers account data and account API self-metrics.
 func RegisterAccountMetrics(registry *prometheus.Registry, metrics *AccountMetrics) {
-	registry.MustRegister(
-		metrics,
-		metrics.requestsTotal,
-	)
+	registry.MustRegister(metrics)
 }
 
 // Poll performs one bounded account profile request and updates the last-good
@@ -102,17 +93,15 @@ func (m *AccountMetrics) Poll(ctx context.Context) error {
 	profile, err := m.client.Profile(ctx, m.coin)
 	if err != nil {
 		category := categorizeError(err)
-		m.requestsTotal.WithLabelValues(accountEndpointProfile, category).Inc()
-		m.setLastError(category)
+		m.recordRequest(category)
 		return fmt.Errorf("poll Braiins account profile: %w", err)
 	}
 	snapshot, err := buildAccountSnapshot(profile, m.coin, m.clock.Now())
 	if err != nil {
-		m.requestsTotal.WithLabelValues(accountEndpointProfile, "malformed").Inc()
-		m.setLastError("malformed")
+		m.recordRequest("malformed")
 		return err
 	}
-	m.requestsTotal.WithLabelValues(accountEndpointProfile, "success").Inc()
+	m.recordRequest("success")
 	m.mu.Lock()
 	m.lastGood = snapshot
 	m.lastSuccess = snapshot.collectedAt
@@ -166,9 +155,10 @@ func (m *AccountMetrics) DataAge() (time.Duration, bool) {
 	return m.clock.Now().Sub(m.lastSuccess), true
 }
 
-func (m *AccountMetrics) setLastError(category string) {
+func (m *AccountMetrics) recordRequest(category string) {
 	m.mu.Lock()
 	m.lastError = category
+	m.requests[category]++
 	m.mu.Unlock()
 }
 
@@ -179,13 +169,18 @@ func (m *AccountMetrics) Describe(ch chan<- *prometheus.Desc) {
 	ch <- accountWorkersDesc
 	ch <- apiLastSuccessDesc
 	ch <- dataAgeDesc
+	ch <- apiRequestsTotalDesc
 }
 
 // Collect exposes only the cached last-good snapshot.
 func (m *AccountMetrics) Collect(ch chan<- prometheus.Metric) {
 	m.mu.RLock()
 	snapshot := m.lastGood
+	requests := copyCounters(m.requests)
 	m.mu.RUnlock()
+	for _, result := range sortedCounterKeys(requests) {
+		ch <- prometheus.MustNewConstMetric(apiRequestsTotalDesc, prometheus.CounterValue, requests[result], accountEndpointProfile, result)
+	}
 	if snapshot == nil {
 		return
 	}
@@ -235,6 +230,12 @@ var (
 		"braiins_pool_data_age_seconds",
 		"Age in seconds of the latest accepted Braiins Pool account snapshot by bounded endpoint.",
 		[]string{"endpoint"},
+		nil,
+	)
+	apiRequestsTotalDesc = prometheus.NewDesc(
+		"braiins_pool_api_requests_total",
+		"Total Braiins Pool API requests by bounded endpoint and result.",
+		[]string{"endpoint", "result"},
 		nil,
 	)
 )

@@ -23,7 +23,15 @@ go run ./cmd/braiins-pool-exporter
 
 Never put a real token in this repository, shell history, a command-line flag,
 an image, or an example file. With a token configured, account metrics appear
-after the first successful profile poll.
+after the first successful profile poll, and worker metrics appear after the
+first successful worker poll.
+
+To disable direct worker labels while keeping account metrics:
+
+```sh
+export BRAIINS_POOL_WORKER_METRICS_ENABLED=false
+go run ./cmd/braiins-pool-exporter
+```
 
 Production deployment is operator-managed. Future example configuration must
 use placeholders, `example.com` domains, or RFC 5737 documentation addresses

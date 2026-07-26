@@ -50,6 +50,12 @@ token as a command argument. With a valid token, `/metrics` should expose the
 Milestone 02 account metrics after the first successful profile poll; `/-/ready`
 returns not ready until that first snapshot is accepted.
 
+Milestone 03 worker metrics are enabled by default with account collection.
+Set `BRAIINS_POOL_WORKER_METRICS_ENABLED=false` to run account-only polling.
+Use `BRAIINS_POOL_MAX_WORKERS` to lower the accepted worker-cardinality limit
+for local tests. Worker names are emitted as runtime metric labels, so do not
+copy live worker output into public files.
+
 ## Adding API behavior
 
 Do not infer the contract from memory. Use official documentation in Milestone
@@ -57,11 +63,11 @@ Do not infer the contract from memory. Use official documentation in Milestone
 encoding, and finalize metric semantics before adding collectors.
 
 Milestone 01 records the current API discovery matrix in
-`docs/API_DISCOVERY.md`. Milestone 02 implements only the profile-backed
-account collector. To perform live read-only validation in a future session,
-export exactly one of `BRAIINS_POOL_TOKEN` or `BRAIINS_POOL_TOKEN_FILE` in the
-shell running the validation. Do not pass a token as a command argument and do
-not copy raw responses into the repository.
+`docs/API_DISCOVERY.md`. Milestones 02 and 03 implement only profile-backed
+account metrics and worker metrics. To perform live read-only validation in a
+future session, export exactly one of `BRAIINS_POOL_TOKEN` or
+`BRAIINS_POOL_TOKEN_FILE` in the shell running the validation. Do not pass a
+token as a command argument and do not copy raw responses into the repository.
 
 ## Build metadata
 

@@ -19,6 +19,7 @@ const (
 	defaultCoin          = "btc"
 	defaultPollInterval  = time.Minute
 	defaultTimeout       = 10 * time.Second
+	defaultMaxWorkers    = 100
 )
 
 // Secret prevents an API token from being exposed by common formatting.
@@ -44,6 +45,9 @@ type Config struct {
 	APIBaseURL   string
 	PollInterval time.Duration
 	Timeout      time.Duration
+
+	WorkerMetricsEnabled bool
+	MaxWorkers           int
 }
 
 // SafeSummary is a deliberately non-sensitive view suitable for logs.
@@ -56,6 +60,8 @@ type SafeSummary struct {
 	Coin          string
 	PollInterval  time.Duration
 	Timeout       time.Duration
+	WorkerMetrics bool
+	MaxWorkers    int
 }
 
 // Environment provides dependencies used when loading environment-backed
@@ -68,13 +74,15 @@ type Environment struct {
 // Default returns the foundation defaults without reading the environment.
 func Default() Config {
 	return Config{
-		ListenAddress: defaultListenAddress,
-		TelemetryPath: defaultTelemetryPath,
-		LogLevel:      "info",
-		LogFormat:     "text",
-		Coin:          defaultCoin,
-		PollInterval:  defaultPollInterval,
-		Timeout:       defaultTimeout,
+		ListenAddress:        defaultListenAddress,
+		TelemetryPath:        defaultTelemetryPath,
+		LogLevel:             "info",
+		LogFormat:            "text",
+		Coin:                 defaultCoin,
+		PollInterval:         defaultPollInterval,
+		Timeout:              defaultTimeout,
+		WorkerMetricsEnabled: true,
+		MaxWorkers:           defaultMaxWorkers,
 	}
 }
 
@@ -142,6 +150,14 @@ func Load(args []string, env Environment) (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+	cfg.WorkerMetricsEnabled, err = boolEnv(env.LookupEnv, "BRAIINS_POOL_WORKER_METRICS_ENABLED", cfg.WorkerMetricsEnabled)
+	if err != nil {
+		return Config{}, err
+	}
+	cfg.MaxWorkers, err = intEnv(env.LookupEnv, "BRAIINS_POOL_MAX_WORKERS", cfg.MaxWorkers)
+	if err != nil {
+		return Config{}, err
+	}
 
 	if err := cfg.Validate(); err != nil {
 		return Config{}, err
@@ -176,6 +192,9 @@ func (c Config) Validate() error {
 	}
 	if c.Timeout <= 0 {
 		return errors.New("Braiins request timeout must be positive")
+	}
+	if c.MaxWorkers <= 0 {
+		return errors.New("Braiins max workers must be positive")
 	}
 	if strings.ToLower(strings.TrimSpace(c.Coin)) != "btc" {
 		return errors.New("Braiins coin selector must be btc")
@@ -212,6 +231,8 @@ func (c Config) Summary() SafeSummary {
 		Coin:          c.Coin,
 		PollInterval:  c.PollInterval,
 		Timeout:       c.Timeout,
+		WorkerMetrics: c.WorkerMetricsEnabled,
+		MaxWorkers:    c.MaxWorkers,
 	}
 }
 
@@ -228,6 +249,30 @@ func durationEnv(lookup func(string) (string, bool), name string, fallback time.
 	parsed, err := time.ParseDuration(strings.TrimSpace(value))
 	if err != nil {
 		return 0, fmt.Errorf("%s must be a valid duration", name)
+	}
+	return parsed, nil
+}
+
+func boolEnv(lookup func(string) (string, bool), name string, fallback bool) (bool, error) {
+	value, ok := lookup(name)
+	if !ok || strings.TrimSpace(value) == "" {
+		return fallback, nil
+	}
+	parsed, err := strconv.ParseBool(strings.TrimSpace(value))
+	if err != nil {
+		return false, fmt.Errorf("%s must be true or false", name)
+	}
+	return parsed, nil
+}
+
+func intEnv(lookup func(string) (string, bool), name string, fallback int) (int, error) {
+	value, ok := lookup(name)
+	if !ok || strings.TrimSpace(value) == "" {
+		return fallback, nil
+	}
+	parsed, err := strconv.Atoi(strings.TrimSpace(value))
+	if err != nil {
+		return 0, fmt.Errorf("%s must be an integer", name)
 	}
 	return parsed, nil
 }
