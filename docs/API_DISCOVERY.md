@@ -9,24 +9,27 @@ Supporting payout-threshold source: official Braiins Academy Rewards &
 Payouts documentation:
 https://academy.braiins.com/braiins-pool/rewards-and-payouts
 
-Live validation status: blocked. This process did not have
-`BRAIINS_POOL_TOKEN` or `BRAIINS_POOL_TOKEN_FILE` set. `SECRETS.md` exists and
-is ignored, but it was not used as an implicit credential source. No live
-Braiins API request was made.
+Live validation status: a narrow read-only structural checkpoint was performed
+on 2026-07-26 using a token extracted only from the ignored local
+`SECRETS.md` Braiins Pool section. The token was copied to an OS-temporary
+token file outside the repository, used via `BRAIINS_POOL_TOKEN_FILE`, and
+deleted after validation. No raw live responses or private values were
+committed.
 
 ## Evidence summary
 
 | Category | Status |
 |---|---|
-| Authentication header | Documented, not live-confirmed |
-| Base URL | Documented, not live-confirmed |
-| Coin selector | BTC documented, not live-confirmed |
-| Profile schema | Documented, not live-confirmed |
-| Worker schema and states | Documented, not live-confirmed |
-| Rewards, daily hashrate, block rewards, payouts | Documented, not live-confirmed |
-| Error response body shape | Unknown; fixtures are synthetic |
+| Authentication header | Documented and live-confirmed |
+| Base URL | Documented and live-confirmed |
+| Coin selector | BTC documented and live-confirmed |
+| Profile schema | Documented and live-confirmed structurally |
+| Worker schema and states | Documented and live-confirmed structurally |
+| Rewards, block rewards, payouts | Documented and live-confirmed structurally |
+| Daily hashrate group endpoint | Documented, but group selector remains unresolved |
+| Error response body shape | Auth failures returned non-JSON text in the live checkpoint |
 | Pagination | Unknown; date filters documented for reward and payout history |
-| Rate limit | Documented as about one request per five seconds |
+| Rate limit | Documented as about one request per five seconds; no rate-limit headers observed |
 
 ## Authentication
 
@@ -39,11 +42,17 @@ Access tokens are generated from Settings > Access Profiles after enabling web
 API access for the profile. Token rotation cancels the previous access token
 for that access profile.
 
-Unknown until live validation:
+Live checkpoint findings:
 
-- exact status code and content type for missing, blank, malformed, and
-  incorrect tokens;
-- whether errors ever echo request data;
+- missing and synthetic invalid tokens returned HTTP 403;
+- authentication failure responses used `text/plain; charset=utf-8`;
+- valid `Pool-Auth-Token` access returned HTTP 200 for profile requests.
+
+Unknown after live validation:
+
+- blank-token behavior;
+- whether all error paths use text/plain;
+- whether errors ever echo request data in other failure classes;
 - token expiry semantics beyond regeneration;
 - token scope granularity beyond access-profile web API access.
 
@@ -59,6 +68,9 @@ Unknown until live validation:
 - whether `Retry-After` or rate-limit headers are emitted;
 - whether ignored requests use empty responses, errors, or stale data.
 
+The live checkpoint spaced requests by about five seconds and observed no
+`Retry-After`, `X-RateLimit-*`, or `RateLimit-*` headers.
+
 Milestone 05 owns retry/backoff policy. Milestone 02 should keep polling no
 faster than the documented safe rate unless stronger evidence is recorded.
 
@@ -69,7 +81,7 @@ faster than the documented safe rate unless stronger evidence is recorded.
 | Pool stats | GET | `/stats/json/btc` | Pool performance and recent blocks | coin path segment | `{ "btc": { ... } }` | none | documented |
 | User profile | GET | `/accounts/profile/json/btc/` | User performance and rewards | coin path segment | `{ "username": "...", "btc": { ... } }` | `profile_success.json` | documented |
 | Daily rewards | GET | `/accounts/rewards/json/btc?from=YYYY-MM-DD&to=YYYY-MM-DD` | Daily rewards for a selected period; last 90 days by default | optional `from`, `to` date strings | `{ "btc": { "daily_rewards": [...] } }` | `rewards_success.json` | documented |
-| Daily hashrate | GET | `/accounts/hash_rate_daily/json/[group]/btc` | Daily average hashrate for user or user group | group path segment, coin path segment | `{ "btc": [...] }` | none | documented |
+| Daily hashrate | GET | `/accounts/hash_rate_daily/json/[group]/btc` | Daily average hashrate for user or user group | group path segment, coin path segment | `{ "btc": [...] }` | none | documented; group selector unresolved |
 | Block rewards | GET | `/accounts/block_rewards/json/btc?from=YYYY-MM-DD&to=YYYY-MM-DD` | Block-level reward history | optional `from`, `to` date strings | `{ "btc": { "block_rewards": [...] } }` | none | documented |
 | Workers | GET | `/accounts/workers/json/btc` | Per-worker performance | coin path segment | `{ "btc": { "workers": { "<worker>": { ... } } } }` | `workers_success.json` | documented |
 | Payouts | GET | `/accounts/payouts/json/btc?from=YYYY-MM-DD&to=YYYY-MM-DD` | On-chain and Lightning payout records | optional `from`, `to` date strings | `{ "onchain": [...], "lightning": [...] }` | `payouts_success.json` | documented |
@@ -85,7 +97,11 @@ Only BTC is explicitly documented on the official monitoring page. URLs use a
 lowercase `btc` path segment, while parameter notes show `BTC`. The client
 normalizes configured coin values to lowercase for URL construction.
 
-Unknown until live validation:
+Live checkpoint findings:
+
+- lowercase `btc` worked for authenticated account endpoints and pool stats.
+
+Unknown after live validation:
 
 - whether non-BTC coins are supported;
 - whether coin selectors are case-sensitive at the API boundary;
@@ -108,8 +124,8 @@ Documented BTC fields:
 - share counts: `shares_5m`, `shares_60m`, `shares_24h`, `shares_yesterday`.
 
 The official field table lists `hash_rate_5m` as a string, while the sample
-shows a number. The Go wire type accepts both number and string via `Decimal`
-until live behavior is verified.
+and live checkpoint show numeric JSON values for hashrate and share windows.
+The Go wire type accepts both number and string via `Decimal`.
 
 ## Worker schema
 
@@ -123,15 +139,19 @@ article describes them as OK, Low, Offline, and Disabled. The pool compares
 worker effective hashrate snapshots every five minutes against monitoring
 limits.
 
-Documented worker fields:
+Live-confirmed worker fields:
 
 - `state`;
 - `last_share` Unix timestamp;
 - `hash_rate_unit`;
-- `hash_rate_scoring`, `hash_rate_5m`, `hash_rate_60m`, `hash_rate_24h`;
+- `hash_rate_5m`, `hash_rate_60m`, `hash_rate_24h`;
 - `shares_5m`, `shares_60m`, `shares_24h`.
 
-Unknown until live validation:
+The official example includes `hash_rate_scoring`, but the live checkpoint did
+not observe that field in worker records. The wire schema treats it as optional
+until broader evidence is available.
+
+Unknown after live validation:
 
 - empty worker-list shape;
 - ordering guarantees for object keys;
@@ -144,7 +164,8 @@ Unknown until live validation:
 Daily rewards use date filters with `YYYY-MM-DD` strings and return the last
 90 days by default. Reward amounts are shown as strings, while the field table
 describes them as numbers; the wire type therefore preserves either encoding
-without converting to float.
+without converting to float. The live checkpoint also observed `shares` as a
+number and `share_prices` as an array in daily reward entries.
 
 Payouts are separated into `onchain` and `lightning` arrays. Sensitive payout
 fields include `destination`, `tx_id`, `invoice`, and `preimage`; these must
@@ -160,8 +181,9 @@ is 0.005 BTC. Payout thresholds can be customized for financial accounts.
 ## Pagination, time ranges, and history
 
 No page-number, cursor, offset, or page-size parameter is documented for the
-verified endpoints. Date ranges are documented for daily rewards, block
-rewards, and payouts. Daily rewards return the last 90 days by default.
+verified endpoints, and no pagination metadata was observed in the live
+checkpoint. Date ranges are documented for daily rewards, block rewards, and
+payouts. Daily rewards return the last 90 days by default.
 
 Historical rewards and payouts remain unsafe as unbounded Prometheus event
 labels. Milestone 04 must prefer current bounded summaries and natural
@@ -182,7 +204,8 @@ ISO `YYYY-MM-DD` strings.
 ## Sanitized fixtures
 
 Fixtures under `testdata/braiins/` are synthetic, sanitized samples shaped from
-the documented official examples. They preserve field names, nesting, nullable
-payout fields, worker states, and numeric encoding. They do not contain raw
-account responses, real worker names, payout destinations, transaction IDs,
-invoices, preimages, balances, or earnings.
+the documented official examples and the live structural checkpoint. They
+preserve field names, nesting, nullable payout fields, worker states, and
+numeric encoding. They do not contain raw account responses, real worker names,
+payout destinations, transaction IDs, invoices, preimages, balances, earnings,
+or operational timestamps.

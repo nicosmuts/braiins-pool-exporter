@@ -26,11 +26,9 @@ The standard Go runtime and process collectors are also registered.
 
 ## Proposed API-derived contract from Milestone 01
 
-These metrics are proposed from official documentation, not implemented yet.
-Live validation remains blocked until `BRAIINS_POOL_TOKEN` or
-`BRAIINS_POOL_TOKEN_FILE` is explicitly provided to the process. Metrics marked
-approved are approved for the next implementation milestone from the documented
-contract, with live validation still required before a public release.
+These metrics are proposed from official documentation and a narrow read-only
+live structural checkpoint, not implemented yet. Metrics marked approved are
+approved for the next implementation milestone from the observed contract.
 
 | Metric | Type | Labels | Source | Unit/conversion | Behavior | Milestone | Status |
 |---|---|---|---|---|---|---|---|

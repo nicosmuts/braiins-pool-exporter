@@ -1,7 +1,8 @@
 # Braiins API fixtures
 
-These fixtures are synthetic, sanitized samples shaped from the official
-Braiins Pool monitoring documentation accessed on 2026-07-26:
+These fixtures are synthetic, sanitized samples shaped from official Braiins
+Pool documentation accessed on 2026-07-26 and a live read-only structural
+validation checkpoint performed on 2026-07-26:
 
 https://academy.braiins.com/braiins-pool/monitoring
 
@@ -15,5 +16,6 @@ No fixture is a raw account response. Replacements applied:
 - timestamps replaced with public example timestamps that do not identify an
   operator.
 
-Fixtures preserve documented JSON field names, nesting, nullable payout fields,
-worker state values, and numeric encoding choices.
+Fixtures preserve documented and live-confirmed JSON field names, nesting,
+nullable payout fields, worker state values, and numeric encoding choices.
+No raw live response values remain.

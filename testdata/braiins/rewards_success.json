@@ -8,6 +8,11 @@
         "bos_plus_reward": "0.00002962",
         "referral_bonus": "0.00000000",
         "referral_reward": "0.00000000",
+        "shares": 42,
+        "share_prices": [
+          "0.00000001",
+          "0.00000002"
+        ],
         "calculation_date": 1733191200
       }
     ]

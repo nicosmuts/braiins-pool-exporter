@@ -50,9 +50,23 @@ No account, worker, reward, payout, polling, cache, or retry collector exists.
 
 ## Validation caveats
 
-Live API validation remains blocked until `BRAIINS_POOL_TOKEN` or
-`BRAIINS_POOL_TOKEN_FILE` is explicitly set in the process. The ignored
-`SECRETS.md` file is not an implicit credential source.
+A narrow live API validation checkpoint was performed on 2026-07-26 with the
+token extracted from only the ignored `SECRETS.md` Braiins Pool section. The
+token was copied to an OS-temporary token file outside the repository, used via
+`BRAIINS_POOL_TOKEN_FILE`, and deleted. Raw responses were kept outside the
+repository and deleted after structural comparison.
+
+Live corrections recorded:
+
+- missing and invalid token requests returned HTTP 403 with text/plain content;
+- `Pool-Auth-Token` worked for authenticated profile access;
+- worker records did not include `hash_rate_scoring` in the checked response,
+  so that field is optional in the wire schema;
+- daily rewards included `shares` and `share_prices`;
+- no rate-limit headers were observed while requests were spaced by about five
+  seconds;
+- the daily-hashrate group endpoint returned 404 when probed with the profile
+  username as the group path segment, so its group selector remains unresolved.
 
 If CGO or `gcc` is unavailable, race-test limitations must be reported with the
 exact command output. Run `golangci-lint run` only if it is already installed
@@ -115,11 +129,10 @@ Manually start the service, request `/metrics`, `/-/healthy`, `/-/ready`, and
 
 ## Known API unknowns
 
-Live behavior remains unverified for missing or invalid tokens, unsupported
-coins, exact error bodies, response content types, empty result shapes,
-pagination headers or cursors, rate-limit status codes, nullable profile or
-worker fields, and whether documented sample/table type discrepancies appear
-in real responses.
+Live behavior remains unverified for blank tokens, unsupported coins,
+alternate auth header behavior, empty result shapes for workers, pagination
+headers or cursors, rate-limit status codes, nullable profile or worker fields
+beyond the checked response, and the correct daily-hashrate group selector.
 
 ## Expected future-session report
 

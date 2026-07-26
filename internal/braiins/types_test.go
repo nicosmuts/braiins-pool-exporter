@@ -55,4 +55,30 @@ func TestWorkerStatesFromFixture(t *testing.T) {
 	if workers["worker-a"].State != "ok" || workers["worker-b"].State != "low" || workers["worker-offline"].State != "off" {
 		t.Fatalf("fixture states = %#v", workers)
 	}
+	if workers["worker-a"].HashRateScoring != nil {
+		t.Fatal("HashRateScoring is present, want omitted optional field")
+	}
+}
+
+func TestRewardLiveConfirmedFieldsFromFixture(t *testing.T) {
+	t.Parallel()
+
+	data, err := os.ReadFile(filepath.Join("..", "..", "testdata", "braiins", "rewards_success.json"))
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+	var envelope CoinEnvelope[RewardsResponse]
+	if err := json.Unmarshal(data, &envelope); err != nil {
+		t.Fatalf("decode rewards: %v", err)
+	}
+	rewards := envelope["btc"].DailyRewards
+	if len(rewards) != 1 {
+		t.Fatalf("len(DailyRewards) = %d, want 1", len(rewards))
+	}
+	if rewards[0].Shares == "" {
+		t.Fatal("Shares is empty")
+	}
+	if len(rewards[0].SharePrices) == 0 {
+		t.Fatal("SharePrices is empty")
+	}
 }

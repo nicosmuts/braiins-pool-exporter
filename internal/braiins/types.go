@@ -114,13 +114,15 @@ type RewardsResponse struct {
 }
 
 type DailyReward struct {
-	Date            int64   `json:"date"`
-	TotalReward     Decimal `json:"total_reward"`
-	MiningReward    Decimal `json:"mining_reward"`
-	BOSPlusReward   Decimal `json:"bos_plus_reward"`
-	ReferralBonus   Decimal `json:"referral_bonus"`
-	ReferralReward  Decimal `json:"referral_reward"`
-	CalculationDate int64   `json:"calculation_date"`
+	Date            int64     `json:"date"`
+	TotalReward     Decimal   `json:"total_reward"`
+	MiningReward    Decimal   `json:"mining_reward"`
+	BOSPlusReward   Decimal   `json:"bos_plus_reward"`
+	ReferralBonus   Decimal   `json:"referral_bonus"`
+	ReferralReward  Decimal   `json:"referral_reward"`
+	Shares          Decimal   `json:"shares"`
+	SharePrices     []Decimal `json:"share_prices"`
+	CalculationDate int64     `json:"calculation_date"`
 }
 
 type DailyHashrate struct {
@@ -154,16 +156,16 @@ type WorkersResponse struct {
 }
 
 type Worker struct {
-	State           string  `json:"state"`
-	LastShare       int64   `json:"last_share"`
-	HashRateUnit    string  `json:"hash_rate_unit"`
-	HashRateScoring Decimal `json:"hash_rate_scoring"`
-	HashRate5m      Decimal `json:"hash_rate_5m"`
-	HashRate60m     Decimal `json:"hash_rate_60m"`
-	HashRate24h     Decimal `json:"hash_rate_24h"`
-	Shares5m        Decimal `json:"shares_5m"`
-	Shares60m       Decimal `json:"shares_60m"`
-	Shares24h       Decimal `json:"shares_24h"`
+	State           string   `json:"state"`
+	LastShare       int64    `json:"last_share"`
+	HashRateUnit    string   `json:"hash_rate_unit"`
+	HashRateScoring *Decimal `json:"hash_rate_scoring"`
+	HashRate5m      Decimal  `json:"hash_rate_5m"`
+	HashRate60m     Decimal  `json:"hash_rate_60m"`
+	HashRate24h     Decimal  `json:"hash_rate_24h"`
+	Shares5m        Decimal  `json:"shares_5m"`
+	Shares60m       Decimal  `json:"shares_60m"`
+	Shares24h       Decimal  `json:"shares_24h"`
 }
 
 type PayoutsResponse struct {
