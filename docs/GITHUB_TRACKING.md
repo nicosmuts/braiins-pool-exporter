@@ -17,13 +17,14 @@ Milestone 10.
 
 ## Parent issue
 
-Title: `Track Braiins Pool Exporter from foundation to workshop integration`
+Title: `Track Braiins Pool Exporter from foundation to production integration`
 
 Milestone: none. The parent spans the complete project and must not affect an
 individual milestone's progress.
 
 Objective: deliver a reusable, secure exporter and later integrate a published
-image into the workshop without mixing public and workshop-specific concerns.
+image into a production environment without mixing public and
+deployment-specific concerns.
 
 Scope: link eleven deliverable issues across ten milestones—one issue for each
 of Milestones 00–08 and two issues for Milestone 09—and record cross-stage
@@ -37,7 +38,7 @@ Acceptance criteria:
 - Milestones 00–08 each have one major deliverable issue and Milestone 09 has
   two separately reviewable deliverable issues;
 - dependencies and stage gates are explicit;
-- public-project and workshop scopes remain separate;
+- public-project and deployment-specific scopes remain separate;
 - the parent checklist links all eleven deliverable issues.
 
 Dependencies: the canonical public repository exists and authenticated access
@@ -45,8 +46,8 @@ to `nicosmuts/braiins-pool-exporter` is verified.
 
 Validation: compare the issue checklist with `docs/ROADMAP.md`.
 
-Security: no token, private response, account identifier, or workshop secret is
-included.
+Security: no token, private response, account identifier, or deployment secret
+is included.
 
 ## Milestone issues
 
@@ -63,8 +64,8 @@ and contain:
 
 For Milestone 00, note that no API call, Docker image, Helm change, cluster
 change, release, or public visibility change is allowed. For the two
-Milestone 09 workshop issues, explicitly identify the separate Helm repository
-and approval gates.
+Milestone 09 production integration issues, explicitly identify the
+operator-managed deployment repository and approval gates.
 
 Suggested issue titles:
 
@@ -77,11 +78,11 @@ Suggested issue titles:
 7. `Milestone 06: build the default Grafana dashboard`
 8. `Milestone 07: add containers and release engineering`
 9. `Milestone 08: prepare the first public release`
-10. `Milestone 09: deploy through workshop GitOps`
-11. `Milestone 09: build the workshop mining operations dashboard`
+10. `Milestone 09: deploy to a production Kubernetes environment`
+11. `Milestone 09: build production operations dashboards`
 
-Assign both workshop issues to Milestone 09, preserving deployment and
-dashboard work as separately reviewable phases.
+Assign both production integration issues to Milestone 09, preserving
+deployment and dashboard work as separately reviewable phases.
 
 ## Additional labels
 
@@ -90,7 +91,8 @@ labels when the tracking manifest is approved for creation:
 
 - `security`: secret handling, privacy, permissions, or supply-chain review;
 - `deployment`: container publishing, release delivery, or runtime deployment;
-- `workshop`: work owned by separate workshop infrastructure or configuration.
+- `integration`: production integration work owned by operator-managed
+  deployment infrastructure or site-specific configuration.
 
 Do not add a `milestone`, `observability`, or `tracking` label. Milestone
 assignment already represents milestone membership, the entire project is

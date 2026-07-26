@@ -24,3 +24,7 @@ go run ./cmd/braiins-pool-exporter
 Never put a real token in this repository, shell history, a command-line flag,
 an image, or an example file. The token is optional until API integration
 begins.
+
+Production deployment is operator-managed. Future example configuration must
+use placeholders, `example.com` domains, or RFC 5737 documentation addresses
+instead of deployment-specific secrets, worker mappings, URLs, or topology.

@@ -11,8 +11,8 @@ workspace and repository `AGENTS.md` files and obey their approval gates.
 - Prompt 5 → Milestone 04
 - Prompt 6 → Milestone 06
 - Prompt 7 → Milestone 07
-- Prompt 8 → Milestone 09, GitOps deployment phase
-- Prompt 9 → Milestone 09, workshop mining dashboard phase
+- Prompt 8 → Milestone 09, production deployment phase
+- Prompt 9 → Milestone 09, production operations dashboard phase
 
 This file currently has no continuation prompt for Milestone 05 or Milestone
 08. Prompts 8 and 9 are two deliverables within Milestone 09; Prompt 9 does not
@@ -21,8 +21,7 @@ define Milestone 10.
 ## Prompt 2 — Braiins API Discovery
 
 ```text
-Work in:
-C:\Users\Nico\dev\nicosmuts\braiins-pool-exporter
+Work in the Braiins Pool Exporter repository root.
 
 Complete only Milestone 01 — Braiins API Discovery for Braiins Pool Exporter.
 The repository should already contain the validated Milestone 00 Go service.
@@ -54,7 +53,7 @@ precision, and historical data.
 
 Prohibited actions: scraping or browser automation; miner configuration;
 wallet keys; Helm/Kubernetes changes; live deployment; release/tag; public
-visibility change; workshop-specific defaults; speculative metrics; commit,
+visibility change; deployment-specific defaults; speculative metrics; commit,
 push, or GitHub mutations without the approvals required by AGENTS.md.
 
 Acceptance criteria:
@@ -78,8 +77,7 @@ the recommended Milestone 02 task. Stop after Milestone 01.
 ## Prompt 3 — Account Collector
 
 ```text
-Work in:
-C:\Users\Nico\dev\nicosmuts\braiins-pool-exporter
+Work in the Braiins Pool Exporter repository root.
 
 Complete only Milestone 02 — Account Collector. Prerequisite: Milestone 01 has
 documented the official Braiins API contract, committed sanitized fixtures,
@@ -102,9 +100,9 @@ replacement, staleness, Prometheus descriptors, and token/error redaction. No
 test may require external network access or a real token.
 
 Prohibited actions: worker, reward, or payout collectors; historical backfill;
-speculative profitability; workshop logic; Helm/Kubernetes changes; Docker or
-release work; logging tokens or response bodies; unbounded labels; commit,
-push, or GitHub mutations without required approvals.
+speculative profitability; deployment-specific logic; Helm/Kubernetes changes;
+Docker or release work; logging tokens or response bodies; unbounded labels;
+commit, push, or GitHub mutations without required approvals.
 
 Acceptance criteria:
 - account metrics exactly match the verified docs contract;
@@ -126,8 +124,7 @@ Stop after Milestone 02.
 ## Prompt 4 — Worker Collector
 
 ```text
-Work in:
-C:\Users\Nico\dev\nicosmuts\braiins-pool-exporter
+Work in the Braiins Pool Exporter repository root.
 
 Complete only Milestone 03 — Worker Collector. Prerequisites: verified worker
 schemas and metric contract from Milestone 01, plus the account polling/cache
@@ -136,10 +133,10 @@ architecture, metrics, security, and API discovery docs. Inspect git status.
 
 Implement worker discovery and verified metrics for worker state, supported
 hashrate windows, shares, and last-share timestamps. Support zero, one, or
-many workers without hard-coded names or Smuts Tech mappings. Deliberately
-define the worker label, privacy implications, disappearance behavior, state
-mapping, unknown states, duplicate records, missing timestamps, and stale
-snapshot behavior. Bound all cache and label dimensions.
+many workers without hard-coded names or deployment-specific mappings.
+Deliberately define the worker label, privacy implications, disappearance
+behavior, state mapping, unknown states, duplicate records, missing timestamps,
+and stale snapshot behavior. Bound all cache and label dimensions.
 
 Reuse the established poll/cache path rather than making requests during
 Prometheus scrapes. Add sanitized multi-worker fixtures and table-driven tests
@@ -148,9 +145,9 @@ cardinality controls, stale data, cancellation, errors, metric descriptors,
 and races.
 
 Prohibited actions: rewards or payouts; miner/device queries or configuration;
-workshop IPs and aliases; arbitrary error labels; historical dates as labels;
-Grafana dashboard queries not backed by existing metrics; Helm/Kubernetes,
-Docker, release, visibility, or unapproved Git operations.
+environment-specific IPs and aliases; arbitrary error labels; historical dates
+as labels; Grafana dashboard queries not backed by existing metrics;
+Helm/Kubernetes, Docker, release, visibility, or unapproved Git operations.
 
 Acceptance criteria:
 - all worker metrics come from verified official fields;
@@ -171,8 +168,7 @@ approval gates, and recommended Milestone 04 work. Stop after Milestone 03.
 ## Prompt 5 — Rewards and Payouts
 
 ```text
-Work in:
-C:\Users\Nico\dev\nicosmuts\braiins-pool-exporter
+Work in the Braiins Pool Exporter repository root.
 
 Complete only Milestone 04 — Rewards and Payouts. Prerequisites: official
 reward/payout schemas, precision, pagination, and date behavior are verified
@@ -195,9 +191,9 @@ history, multiple pages, repeated items, boundary dates, optional fields,
 errors, cancellation, stale cache, metric output, redaction, and races.
 
 Prohibited actions: wallet monitoring; profitability estimates; price feeds;
-unbounded event labels; workshop-specific history stores; Grafana dashboard;
-Helm/Kubernetes; Docker/release work; unapproved commits, pushes, or visibility
-changes.
+unbounded event labels; deployment-specific history stores; Grafana dashboard;
+Helm/Kubernetes; Docker/release work; unapproved commits, pushes, or
+visibility changes.
 
 Acceptance criteria:
 - the historical-data decision is explicit and Prometheus-correct;
@@ -217,8 +213,7 @@ approval gates, and next hardening work. Stop after Milestone 04.
 ## Prompt 6 — Default Grafana Dashboard
 
 ```text
-Work in:
-C:\Users\Nico\dev\nicosmuts\braiins-pool-exporter
+Work in the Braiins Pool Exporter repository root.
 
 Complete only Milestone 06 — Default Grafana Dashboard. Prerequisite:
 Milestones 02 through 05 are complete and docs/METRICS.md reflects the exact
@@ -236,10 +231,11 @@ Prometheus datasource variable and portable job/instance filters. Provide
 installation instructions, screenshots or rendered evidence, and dashboard
 validation.
 
-Do not include Avalon metrics, Smuts Tech IPs or worker aliases, CoinGecko,
-wallet data, Kubernetes metrics, workshop provisioning, profitability
-estimates, or nonexistent metric queries. Do not alter Helm or a live Grafana
-instance. Do not make unapproved GitHub or release changes.
+Do not include deployment-specific device metrics, IPs or worker aliases,
+price-provider data, wallet data, Kubernetes metrics, production provisioning,
+profitability estimates, or nonexistent metric queries. Do not alter
+deployment configuration or a live Grafana instance. Do not make unapproved
+GitHub or release changes.
 
 Acceptance criteria:
 - valid importable dashboard JSON with stable UID/title;
@@ -259,8 +255,7 @@ approval gates, and remaining dashboard limitations. Stop after Milestone 06.
 ## Prompt 7 — Container and Release Engineering
 
 ```text
-Work in:
-C:\Users\Nico\dev\nicosmuts\braiins-pool-exporter
+Work in the Braiins Pool Exporter repository root.
 
 Complete only Milestone 07 — Containers and Release Engineering. Prerequisite:
 the exporter and public dashboard are validated, and the canonical GitHub remote
@@ -300,24 +295,24 @@ changed, git status, artifacts not published, approvals still required, and
 Milestone 08 readiness. Stop after Milestone 07.
 ```
 
-## Prompt 8 — Helm/GitOps Deployment
+## Prompt 8 — Production Kubernetes Deployment
 
 ```text
-Work only in:
-C:\Users\Nico\dev\smuts-tech\helm
+Work only in the operator-provided deployment repository.
 
-Complete only the GitOps Deployment phase of Milestone 09 — Workshop
+Complete only the Production Deployment phase of Milestone 09 — Production
 Integration for Braiins Pool Exporter. Prerequisites: a reviewed immutable
 image exists at
 ghcr.io/nicosmuts/braiins-pool-exporter using a verified commit-SHA or release
 tag; the exporter repository's public/default dashboard is validated; and the
-user has explicitly authorized implementation in the Helm repository.
+user has explicitly authorized implementation in the operator-provided
+deployment repository.
 
-Read the parent workspace AGENTS.md, helm/AGENTS.md, relevant chart,
-observability, Argo CD, secrets, runner, and deployment documentation. Inspect
-git status and existing conventions before proposing changes. Report the
-exact Helm files to be changed and the deployment sequence before editing if
-required by workspace policy.
+Read all applicable agent instructions plus the target repository's chart,
+observability, GitOps, secrets, runner, and deployment documentation. Inspect
+Git status and existing conventions before proposing changes. Report the exact
+deployment files to be changed and the deployment sequence before editing if
+required by repository policy.
 
 Add the smallest convention-aligned chart/configuration needed to deploy the
 exporter with port 9108, resource limits, probes for /-/healthy and /-/ready,
@@ -327,11 +322,15 @@ Braiins token. Mount a Secret file where practical. Provision the reusable
 public dashboard only if the repository's established mechanism supports it.
 Keep permissions namespace-scoped and do not grant cluster-admin.
 
+Keep examples parameterized with `<cluster-context>`, `<namespace>`,
+`<release-name>`, and `<secret-name>`. Operator-provided values remain outside
+the public exporter repository and must not be copied into public artifacts.
+
 Prohibited actions: modifying the exporter source; using latest; embedding a
-token; changing miners/pool/firmware; adding price, wallet, Avalon, or
-profitability logic; applying manifests, syncing Argo CD, deploying, or
-touching the live cluster without separate explicit deployment approval;
-unapproved staging, commits, pushes, merges, or releases.
+token; changing miners/pool/firmware; adding price, wallet, device telemetry, or
+profitability logic; applying manifests, syncing a GitOps controller,
+deploying, or touching the live cluster without separate explicit deployment
+approval; unapproved staging, commits, pushes, merges, or releases.
 
 Acceptance criteria:
 - rendered manifests use the verified immutable image and no secret value;
@@ -346,37 +345,40 @@ Acceptance criteria:
 
 Final report: repository/branch, files, rendered workloads/RBAC/resources,
 image existence evidence, validation results, secret contract, rollout and
-rollback plan, git status, and every remaining approval. Stop before live
-deployment unless that exact action was separately approved.
+rollback plan, Git status, and every remaining approval. Stop before live
+production deployment unless that exact action was separately approved.
 ```
 
-## Prompt 9 — Workshop Mining Dashboard
+## Prompt 9 — Production Operations Dashboard
 
 ```text
-Work in the repository that owns workshop Grafana provisioning, expected to be:
-C:\Users\Nico\dev\smuts-tech\helm
+Work in the operator-provided repository that owns production Grafana
+provisioning.
 
-Complete only the Mining Operations Dashboard phase of Milestone 09 —
-Workshop Integration.
-Prerequisites: Braiins Pool Exporter is deployed and scraped; Avalon exporter
+Complete only the Production Operations Dashboard phase of Milestone 09 —
+Production Integration.
+Prerequisites: Braiins Pool Exporter is deployed and scraped; device telemetry
 metrics are available; verified price/profitability data sources and their
-units are documented; and the user has authorized workshop-dashboard changes.
+units are documented; and the user has authorized production-dashboard changes.
 Read parent and repository AGENTS.md plus observability/dashboard conventions.
-Inspect git status and the existing workshop mining dashboards before editing.
+Inspect Git status and the existing production dashboards before editing.
 
-Design a Braiins-inspired workshop dashboard that combines pool-reported
-hashrate, local miner hashrate, expected fleet hashrate, worker health,
-last-share age, rewards, balance and payouts where emitted, BTC/USD and BTC/ZAR
-price from a separate source, estimated fiat value, historical earnings,
-projected daily/monthly/annual earnings, uptime, and clearly labeled
-profitability assumptions. Preserve the standalone public dashboard; create
-workshop-owned composition instead of adding local assumptions to the exporter.
+Design a production operations dashboard that combines pool-reported hashrate,
+device-reported hashrate, expected fleet hashrate, worker health, last-share
+age, rewards, balance and payouts where emitted, currency prices from separate
+sources, estimated fiat value, historical earnings, projected
+daily/monthly/annual earnings, uptime, and clearly labeled profitability
+assumptions. Preserve the standalone public dashboard; create
+deployment-specific composition instead of adding site assumptions to the
+exporter.
 
 Every query must be mapped to an existing metric and unit. Document formulas,
-time-window alignment, missing-data behavior, pool-vs-local identity mapping,
+time-window alignment, missing-data behavior, pool-vs-device identity mapping,
 currency conversion, and which values are authoritative versus estimated.
-Keep worker/IP mappings in workshop configuration. Treat wallet monitoring as
-a separate optional subproject and never request private keys or seed phrases.
+Keep worker/IP mappings in site-specific configuration. Treat wallet monitoring
+as a separate optional subproject and never request private keys or seed
+phrases. Use placeholders such as `<grafana-url>`, `<prometheus-url>`,
+`<worker-name>`, and `<deployment-domain>` in public documentation.
 
 Prohibited actions: changing exporter metrics to fit the dashboard without a
 separate exporter issue; embedding tokens, addresses, or secrets; configuring
@@ -386,9 +388,10 @@ committing, pushing, or merging without the required separate approvals.
 
 Acceptance criteria:
 - all panels use verified present metrics and correct units;
-- pool/local comparisons have explicit mappings and aligned windows;
+- pool/device comparisons have explicit mappings and aligned windows;
 - estimates expose their assumptions and distinguish observed values;
-- no secrets, wallet keys, public-default workshop data, or unbounded labels;
+- no secrets, wallet keys, deployment-specific data in public defaults, or
+  unbounded labels;
 - no-data, stale-data, partial-fleet, and price-feed failure states are clear;
 - dashboard JSON/provisioning validates and is visually reviewed at desktop
   and operations-display sizes;
@@ -399,5 +402,5 @@ Acceptance criteria:
 Final report: dashboard structure, complete query/formula mapping, data
 sources, assumptions, visual evidence, files changed, exact validation, privacy
 and security review, git status, rollout/rollback plan, and approvals still
-required. Stop after the workshop dashboard phase of Milestone 09.
+required. Stop after the production operations dashboard phase of Milestone 09.
 ```

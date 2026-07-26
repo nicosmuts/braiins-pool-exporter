@@ -8,7 +8,7 @@ Thank you for helping improve Braiins Pool Exporter.
 2. Discuss metric names and API semantics before implementing a new family.
 3. Never attach real tokens, account identifiers, wallet addresses, payout
    addresses, or sensitive API responses to an issue or commit.
-4. Keep workshop-specific integrations outside the reusable exporter.
+4. Keep deployment-specific integrations outside the reusable exporter.
 
 ## Development
 

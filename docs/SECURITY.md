@@ -42,4 +42,4 @@ or debug formatting. Fuzzing URL/error sanitizers should be considered.
 
 Before a public release, review Git history, repository settings, fixtures,
 dependencies, container contents, workflow permissions, and documentation for
-secrets and private workshop data.
+secrets and private deployment data.

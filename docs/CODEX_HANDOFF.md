@@ -3,24 +3,22 @@
 ## Objective
 
 Continue building a public-quality Prometheus exporter for the official
-Braiins Pool API without leaking secrets or adding workshop-specific behavior.
+Braiins Pool API without leaking secrets or adding deployment-specific
+behavior to public defaults.
 
 ## Repository state
 
-- Local path: `C:\Users\Nico\dev\nicosmuts\braiins-pool-exporter`
 - Canonical repository: `https://github.com/nicosmuts/braiins-pool-exporter`
 - GitHub owner: `nicosmuts`
-- Public author and project owner: Nico Smuts
 - Visibility: public
 - Branch: `main`
 - Module: `github.com/nicosmuts/braiins-pool-exporter`
 - Toolchain: Go 1.26.4
 - License: Apache-2.0
 
-The working tree was migrated intact from the former Smuts Tech workspace and
-published at the canonical public repository. The foundation commit is on
-`main` and local/remote are synchronized. Check GitHub authentication,
-milestones, issues, and Git status before tracking mutations.
+The foundation is published at the canonical public repository. The foundation
+commit is on `main` and local/remote are synchronized. Check GitHub
+authentication, milestones, issues, and Git status before tracking mutations.
 
 ## Completed milestone
 
@@ -59,7 +57,8 @@ validation caveats.
 - Liveness never depends on the remote API.
 - Revisit readiness after first-poll and staleness semantics are designed.
 - Never represent historic event dates as current-sample labels.
-- Keep public dashboard logic separate from Smuts Tech composite dashboards.
+- Keep public dashboard logic separate from deployment-specific composite
+  dashboards.
 - Accept tokens only through environment or mounted file, never CLI flags.
 
 ## Open milestones
@@ -75,7 +74,8 @@ contract and redaction behavior are verified.
 The approved model contains exactly ten milestones, numbered 00 through 09,
 and exactly twelve future GitHub issues: one parent issue without a milestone
 and eleven deliverable issues. Milestones 00–08 each have one deliverable;
-Milestone 09 has two separate workshop issues. There is no Milestone 10.
+Milestone 09 has two separate production integration issues. There is no
+Milestone 10.
 
 No GitHub tracking objects have been created. GitHub CLI authentication is
 currently invalid, so tracking creation remains blocked until the user repairs

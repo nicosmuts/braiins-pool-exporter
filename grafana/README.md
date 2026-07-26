@@ -13,6 +13,11 @@ No dashboard JSON is included in Milestone 00 because API-derived metrics do
 not exist yet. Speculative queries would create a misleading compatibility
 contract.
 
-The public dashboard will not depend on Avalon telemetry, Smuts Tech worker
-names or IP addresses, Bitcoin price providers, wallet monitoring, Kubernetes
-metrics, or workshop-specific Grafana provisioning.
+The public dashboard will not depend on deployment-specific device telemetry,
+worker names or IP addresses, Bitcoin price providers, wallet monitoring,
+Kubernetes metrics, or environment-specific Grafana provisioning.
+
+Dashboard assets must remain reusable and parameterized through datasource,
+job, and instance variables. Public JSON and documentation must not embed
+deployment URLs, worker mappings, credentials, or private infrastructure
+topology.

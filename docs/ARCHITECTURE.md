@@ -62,6 +62,7 @@ backfill is out of scope until that decision is documented.
 
 ## Deployment boundary
 
-The exporter binary and future container are public-project artifacts. The
-Smuts Tech Helm chart, Secret, scrape configuration, and composite workshop
-dashboard belong to later work in the separate Helm repository.
+The exporter binary and future container are public-project artifacts.
+Operator-managed deployment configuration, Secrets, scrape configuration, and
+composite production dashboards remain outside public exporter defaults and
+belong to later integration work.

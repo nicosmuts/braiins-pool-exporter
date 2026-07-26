@@ -56,17 +56,17 @@ Complete documentation, license, dependency, history, fixture, and security
 reviews; produce `v0.1.0`; explicitly review repository visibility before any
 public change.
 
-## Milestone 09 — Workshop Integration
+## Milestone 09 — Production Integration
 
 This milestone has two deliberately separate delivery phases:
 
-1. In the separate Helm repository, deploy an immutable published image, mount
-   a Kubernetes Secret, configure Prometheus scraping, and validate the live
-   workshop rollout. This phase requires separate deployment approval.
-2. In workshop-owned configuration, combine exporter metrics with Avalon
+1. In an operator-managed deployment repository, deploy an immutable published
+   image, mount a Kubernetes Secret, configure Prometheus scraping, and validate
+   the production rollout. This phase requires separate deployment approval.
+2. In site-specific configuration, combine exporter metrics with device
    telemetry, price data, profitability assumptions, and optional wallet data.
-   Keep external data sources and workshop mappings outside the public
-   exporter.
+   Keep external data sources and deployment-specific mappings outside the
+   public exporter.
 
 ## Delivery dependencies
 
@@ -80,9 +80,9 @@ This milestone has two deliberately separate delivery phases:
            -> 06 Default Dashboard
            -> 07 Containers and Releases
               -> 08 First Public Release
-                 -> 09 Workshop Integration
-                    -> GitOps deployment phase
-                    -> workshop dashboard phase
+                 -> 09 Production Integration
+                    -> production deployment phase
+                    -> operational dashboard phase
 ```
 
 Some collector work may overlap after Milestone 01, but metric and security

@@ -5,7 +5,7 @@ labels: []
 body:
   - type: markdown
     attributes:
-      value: Never include tokens, private API responses, payout addresses, or personal data.
+      value: Never include tokens, private API responses, payout addresses, deployment URLs or topology, or personal data.
   - type: textarea
     id: objective
     attributes:

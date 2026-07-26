@@ -8,10 +8,9 @@ data from the official Braiins Pool API.
 > Braiins API integration has not started. Milestone 00 exposes only exporter
 > self-metrics.
 
-This public portfolio project is owned and maintained by
-[Nico Smuts](https://github.com/nicosmuts). It is designed for any Braiins Pool
-user and contains no Smuts Tech workshop-specific addresses, worker mappings,
-or dashboards.
+This independent exporter is designed for Braiins Pool users and keeps
+environment-specific addresses, worker mappings, credentials, and dashboards
+outside the public project.
 
 ## Current scope
 
@@ -111,8 +110,8 @@ Equivalent commands are documented in
 - [grafana/README.md](grafana/README.md) reserves the reusable dashboard
   identity without querying speculative metrics.
 
-Workshop deployment, local Avalon telemetry, Bitcoin prices, wallet
-monitoring, and profitability calculations are separate integration concerns.
+Production deployment, device telemetry, Bitcoin prices, wallet monitoring,
+and profitability calculations are separate integration concerns.
 
 ## Security
 

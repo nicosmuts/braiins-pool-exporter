@@ -3,8 +3,8 @@
 ## Objective
 
 Build a small, reusable Prometheus exporter for authoritative data from the
-official Braiins Pool API. This is a public open-source portfolio project owned
-by Nico Smuts and must remain safe to publish.
+official Braiins Pool API. This is an independent open-source project and must
+remain safe to publish.
 
 ## Architecture and ownership
 
@@ -59,11 +59,11 @@ interfaces.
 ## Scope constraints
 
 - The public exporter does not query or configure mining devices.
-- Do not add Smuts Tech IP addresses, worker mappings, Kubernetes assumptions,
-  Avalon metrics, price feeds, wallet monitoring, or workshop profitability
-  logic to public defaults.
-- Helm, cluster deployment, and composite workshop dashboards live in separate
-  repositories and later milestones.
+- Do not add environment-specific IP addresses, worker mappings, Kubernetes
+  assumptions, device telemetry, price feeds, wallet monitoring, or
+  profitability logic to public defaults.
+- Operator-managed deployment configuration and composite production
+  dashboards live outside public exporter defaults and in later milestones.
 
 ## Tests and validation
 

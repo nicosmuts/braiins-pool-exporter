@@ -6,7 +6,7 @@
 
 - [ ] No tokens, private responses, account identifiers, payout addresses, or secrets are included.
 - [ ] New metric names, types, units, and labels are documented and bounded.
-- [ ] Public defaults contain no workshop-specific assumptions.
+- [ ] Public defaults contain no environment-specific assumptions.
 
 ## Validation
 
