@@ -5,7 +5,8 @@ data from the official Braiins Pool API.
 
 > [!IMPORTANT]
 > This project is under active development. No stable release exists, and the
-> Milestone 04 implements bounded rewards and payouts. Dashboard, container,
+> Milestone 05 hardening code is implemented but remains open until race
+> validation passes in a supported cgo environment. Dashboard, container,
 > release, and deployment work remain future milestones.
 
 This independent exporter is designed for Braiins Pool users and keeps
@@ -27,6 +28,8 @@ The exporter currently provides:
   shares, last-share, request, and freshness metrics;
 - optional bounded rewards and payouts polling with precision-safe BTC reward
   aggregation, satoshi payout aggregation, request, and freshness metrics;
+- bounded cancellation-aware retry/backoff and privacy-safe rate-limit
+  handling for authenticated API polls;
 - graceful shutdown and unit tests.
 
 Milestone 01 records the documented official API contract in
@@ -119,6 +122,13 @@ for Prometheus exposition. Payout amounts and fees remain integer satoshis.
 No reward dates, payout destinations, transaction IDs, Lightning invoices,
 preimages, account names, or event identifiers are exported as labels.
 Rewards and payouts have independent freshness and do not block readiness.
+
+Each logical API poll uses at most three HTTP attempts. Transient transport
+failures, request timeouts, HTTP 429, and HTTP 5xx can be retried with
+deterministic bounded backoff. Invalid credentials, forbidden access, client
+validation errors, decode/schema errors, and cancellation are not retried.
+Stale-but-valid data remains exported; data older than five poll intervals is
+operationally stale and visible through `braiins_pool_data_age_seconds`.
 
 ## Development
 

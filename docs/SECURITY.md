@@ -31,6 +31,8 @@ responsibility.
 - Use a redacting secret type and an explicit safe summary.
 - Give HTTP clients explicit timeouts and context cancellation.
 - Sanitize errors and URLs; do not log response bodies by default.
+- Do not follow Braiins API redirects; redirect targets are not part of the
+  verified API contract.
 - Keep fixtures synthetic or rigorously sanitized.
 - Keep labels bounded and free of private financial identifiers.
 
@@ -55,6 +57,28 @@ dates, payout timestamps, payout destinations, transaction IDs, Lightning
 invoices, preimages, financial account names, and event identifiers are used
 neither as labels nor as public fixture values. Deduplication keys are internal
 to snapshot construction and are not logged or exported.
+
+Milestone 05 hardening keeps retry and rate-limit handling privacy-safe. Retry
+decisions use typed status, transport, timeout, decode, and validation errors;
+response bodies, full URLs, authorization headers, `Retry-After` header values,
+worker names, payout identifiers, and raw arbitrary errors are not labels.
+HTTP 429 is exposed only as `rate_limited`, and malformed rate-limit headers
+fall back to a conservative bounded delay without being logged or exported.
+
+Focused security review findings:
+
+- Accepted: tokens are accepted only through environment or mounted file and
+  remain redacted in configuration summaries.
+- Accepted: custom API base URLs are validated as absolute HTTP(S) origins
+  without credentials, queries, or fragments; redirects are refused.
+- Accepted: HTTP response bodies are read only for decoding successful
+  responses and are never included in status, decode, or retry errors.
+- Fixed: transient retry, 429, and response-size failures now map to bounded
+  categories rather than raw error text.
+- Fixed: rewards and payouts now have explicit 1,000-record per-window caps to
+  bound deduplication memory.
+- Deferred: formal dependency, container, SBOM, workflow-permission, and
+  release-contents reviews belong to release milestones.
 
 ## Required future tests
 

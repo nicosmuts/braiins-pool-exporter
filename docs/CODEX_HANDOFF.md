@@ -96,7 +96,27 @@ Milestone 04 implements rewards and payouts:
   counters, freshness metrics, and failure behavior;
 - rewards and payouts do not block readiness.
 
-No retry/backoff, dashboard, container, release, or deployment work exists.
+Milestone 05 hardens exporter polling and security:
+
+- each logical API poll uses at most three HTTP attempts;
+- retry eligibility is limited to transient transport failures, request
+  timeouts, HTTP 429, and HTTP 5xx;
+- non-rate-limit backoff is deterministic at one second then two seconds,
+  capped at five seconds;
+- HTTP 429 is classified as `rate_limited` and honors valid `Retry-After`
+  seconds or HTTP-date values up to the five-second cap;
+- cancellation interrupts in-flight requests and retry waits;
+- API redirects are refused;
+- public request-result categories are bounded and privacy-safe;
+- stale-but-valid last-known-good data remains exported, with data older than
+  five poll intervals considered operationally stale through data age;
+- poll cycles are serialized and the next cycle is scheduled only after the
+  previous cycle completes;
+- rewards and payouts are capped at 1,000 records per bounded window;
+- concurrent poll/scrape tests and synthetic benchmarks cover the cached
+  collectors.
+
+No dashboard, container, release, or deployment work exists.
 
 ## Validation caveats
 
@@ -122,6 +142,18 @@ If CGO or `gcc` is unavailable, race-test limitations must be reported with the
 exact command output. Run `golangci-lint run` only if it is already installed
 or installation is explicitly approved.
 
+Milestone 05 race validation blocker recorded on 2026-07-26:
+
+- `go test -race -count=1 ./...` on Windows reported `go: -race requires
+  cgo; enable cgo by setting CGO_ENABLED=1`;
+- retrying with `CGO_ENABLED=1` reported `cgo: C compiler "gcc" not found:
+  exec: "gcc": executable file not found in %PATH%`;
+- Docker was unavailable because the daemon pipe was missing and Docker config
+  access was denied;
+- WSL distro enumeration returned `E_ACCESSDENIED`;
+- Issue #6 and Milestone 05 must remain open until `go test -race -count=1
+  ./...` passes in a supported environment.
+
 ## Architecture decisions
 
 - Poll outside Prometheus scrapes and expose an immutable cached snapshot.
@@ -139,6 +171,9 @@ or installation is explicitly approved.
   does not block readiness.
 - Rewards and payouts use rolling bounded-window summaries, not historic event
   labels or backfill samples.
+- Retry and rate-limit behavior is bounded, cancellation-aware, and
+  endpoint-agnostic.
+- Data age is the staleness signal; stale data is not silently hidden.
 - Never represent historic event dates as current-sample labels.
 - Keep public dashboard logic separate from deployment-specific composite
   dashboards.
@@ -198,9 +233,9 @@ the checked response, nullable worker fields beyond the checked response,
 future reward/payout schema additions, and the correct daily-hashrate group
 selector.
 
-Milestone 05 is the next implementation boundary and should add only exporter
-hardening such as bounded retry/backoff and rate-limit handling. Do not begin
-dashboard, container, release, or deployment work before the corresponding
+Milestone 06 is the next implementation boundary and should add only the
+default Grafana dashboard after Milestone 05 is fully validated and tracked.
+Do not begin container, release, or deployment work before the corresponding
 milestones.
 
 ## Expected future-session report

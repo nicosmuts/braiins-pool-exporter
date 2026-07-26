@@ -183,6 +183,41 @@ func TestHistoryMetricsRejectMalformedRewardDecimalAndPayoutOverflow(t *testing.
 	}
 }
 
+func TestHistoryMetricsRejectRecordLimitsAndPreserveLastGood(t *testing.T) {
+	t.Parallel()
+
+	rewards := make([]braiins.DailyReward, maxRewardRecords+1)
+	for i := range rewards {
+		rewards[i] = testReward(100+int64(i), "0.00000001", "0.00000001")
+	}
+	payouts := make([]braiins.Payout, maxPayoutRecords+1)
+	for i := range payouts {
+		payouts[i] = testPayout("confirmed", 1, 0, 100+int64(i))
+	}
+	client := &sequenceHistoryClient{
+		rewards: []braiins.CoinEnvelope[braiins.RewardsResponse]{
+			testRewards(testReward(100, "0.1", "0.1")),
+			testRewards(rewards...),
+		},
+		payouts: []braiins.PayoutsResponse{
+			testPayouts(testPayout("confirmed", 10, 1, 100)),
+			testPayouts(payouts...),
+		},
+	}
+	metrics := newTestHistoryMetrics(t, client, &fakeClock{now: time.Unix(100, 0)}, 7, true, true)
+	if err := metrics.Poll(context.Background()); err != nil {
+		t.Fatalf("first Poll() error = %v", err)
+	}
+	if err := metrics.Poll(context.Background()); err == nil {
+		t.Fatal("second Poll() error = nil, want record-limit errors")
+	}
+	families := gatherRegisteredHistoryFamilies(t, metrics)
+	assertMetric(t, families, "braiins_pool_reward_daily_btc", map[string]string{"component": "total"}, 0.1)
+	assertMetric(t, families, "braiins_pool_payout_amount_sats", map[string]string{"rail": "onchain", "status": "confirmed"}, 10)
+	assertMetric(t, families, "braiins_pool_api_requests_total", map[string]string{"endpoint": "rewards", "result": "invalid_data"}, 1)
+	assertMetric(t, families, "braiins_pool_api_requests_total", map[string]string{"endpoint": "payouts", "result": "invalid_data"}, 1)
+}
+
 func TestHistoryAndAccountAndWorkerMetricsRegisterTogether(t *testing.T) {
 	t.Parallel()
 

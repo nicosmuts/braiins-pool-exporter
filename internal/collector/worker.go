@@ -110,7 +110,7 @@ func (m *WorkerMetrics) Poll(ctx context.Context) error {
 	}
 	snapshot, err := buildWorkerSnapshot(envelope, m.coin, m.clock.Now(), m.maxWorkers)
 	if err != nil {
-		category := "malformed"
+		category := "invalid_data"
 		if errors.Is(err, errWorkerLimitExceeded) {
 			category = "limit_exceeded"
 		}

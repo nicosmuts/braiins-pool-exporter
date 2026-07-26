@@ -18,6 +18,7 @@ gofmt -w .
 go vet ./...
 go test ./...
 go test -race ./...
+go test -run '^$' -bench . -benchmem ./...
 go build ./cmd/braiins-pool-exporter
 go run ./cmd/braiins-pool-exporter
 ```
@@ -30,7 +31,9 @@ make check
 ```
 
 The race detector may require platform-specific C tooling on some systems.
-Report the exact failure rather than claiming it passed.
+Report the exact failure rather than claiming it passed. On Windows hosts
+without `gcc`, use an already-authorized Linux, WSL, CI, or official Go
+container environment rather than installing broad tooling silently.
 
 ## Manual smoke test
 
@@ -63,6 +66,13 @@ account collection. Set `BRAIINS_POOL_REWARDS_ENABLED=false` or
 values are 1 through 90 days. Do not copy live reward dates, payout
 destinations, transaction IDs, Lightning invoices, preimages, account names,
 or financial history into public files.
+
+Milestone 05 retry behavior is automatic and bounded. Each logical poll makes
+at most three HTTP attempts. HTTP 429 honors `Retry-After` when valid and falls
+back to a capped five-second delay otherwise. Scrapes never retry and never
+call Braiins Pool directly. For hardening smoke tests, use synthetic local
+responses for failure, retry, and rate-limit scenarios; do not intentionally
+trigger live rate limits.
 
 ## Adding API behavior
 

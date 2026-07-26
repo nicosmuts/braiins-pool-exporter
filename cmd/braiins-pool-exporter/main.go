@@ -108,6 +108,7 @@ func run(args []string) error {
 	}()
 	pollCtx, stopPolling := context.WithCancel(context.Background())
 	defer stopPolling()
+	pollDone := make(chan struct{})
 	if accountMetrics != nil {
 		steps := []pollStep{accountMetrics.Poll}
 		if workerMetrics != nil {
@@ -119,7 +120,12 @@ func run(args []string) error {
 		if historyMetrics != nil && historyMetrics.PayoutsEnabled() {
 			steps = append(steps, historyMetrics.PollPayouts)
 		}
-		go runPollSteps(pollCtx, cfg.PollInterval, steps)
+		go func() {
+			defer close(pollDone)
+			runPollSteps(pollCtx, cfg.PollInterval, steps)
+		}()
+	} else {
+		close(pollDone)
 	}
 
 	signals := make(chan os.Signal, 1)
@@ -140,6 +146,10 @@ func run(args []string) error {
 	stopPolling()
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
+	select {
+	case <-pollDone:
+	case <-ctx.Done():
+	}
 	if err := app.Shutdown(ctx); err != nil && !errors.Is(err, context.Canceled) {
 		return fmt.Errorf("shutdown HTTP server: %w", err)
 	}
@@ -173,15 +183,16 @@ func runPollSteps(ctx context.Context, interval time.Duration, steps []pollStep)
 			}
 		}
 	}
-	pollAll()
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
 	for {
+		pollAll()
+		timer := time.NewTimer(interval)
 		select {
 		case <-ctx.Done():
+			if !timer.Stop() {
+				<-timer.C
+			}
 			return
-		case <-ticker.C:
-			pollAll()
+		case <-timer.C:
 		}
 	}
 }

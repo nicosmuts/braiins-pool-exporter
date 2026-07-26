@@ -98,7 +98,7 @@ func (m *AccountMetrics) Poll(ctx context.Context) error {
 	}
 	snapshot, err := buildAccountSnapshot(profile, m.coin, m.clock.Now())
 	if err != nil {
-		m.recordRequest("malformed")
+		m.recordRequest("invalid_data")
 		return err
 	}
 	m.recordRequest("success")
@@ -307,9 +307,29 @@ func categorizeError(err error) string {
 			return "unauthorized"
 		case 403:
 			return "forbidden"
+		case 429:
+			return "rate_limited"
 		default:
+			if status.StatusCode >= 500 && status.StatusCode <= 599 {
+				return "server"
+			}
 			return "http_error"
 		}
+	}
+	var decode braiins.DecodeError
+	if errors.As(err, &decode) {
+		return "decode"
+	}
+	var tooLarge braiins.ResponseTooLargeError
+	if errors.As(err, &tooLarge) {
+		return "invalid_data"
+	}
+	var transport braiins.TransportError
+	if errors.As(err, &transport) {
+		if transport.Timeout {
+			return "timeout"
+		}
+		return "transport"
 	}
 	if errors.Is(err, context.Canceled) {
 		return "canceled"
@@ -320,9 +340,6 @@ func categorizeError(err error) string {
 	var netErr net.Error
 	if errors.As(err, &netErr) && netErr.Timeout() {
 		return "timeout"
-	}
-	if strings.Contains(strings.ToLower(err.Error()), "decode braiins api json response") {
-		return "malformed"
 	}
 	return "error"
 }

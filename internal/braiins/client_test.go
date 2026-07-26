@@ -172,6 +172,177 @@ func TestDoJSONDecodeErrorDoesNotExposeBodyValues(t *testing.T) {
 	}
 }
 
+func TestDoJSONRetriesTransientServerError(t *testing.T) {
+	t.Parallel()
+
+	sleeper := &recordingSleeper{}
+	calls := 0
+	client, err := NewClient(Config{
+		BaseURL: "https://pool.braiins.com",
+		Retry: RetryPolicy{
+			MaxAttempts:    3,
+			InitialBackoff: time.Second,
+			MaxBackoff:     5 * time.Second,
+			Sleeper:        sleeper,
+		},
+		Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+			calls++
+			if calls < 3 {
+				return &http.Response{
+					StatusCode: http.StatusBadGateway,
+					Body:       io.NopCloser(strings.NewReader(`private body ignored`)),
+				}, nil
+			}
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       io.NopCloser(strings.NewReader(`{"username":"example","btc":{"hash_rate_unit":"Gh/s"}}`)),
+			}, nil
+		}),
+	})
+	if err != nil {
+		t.Fatalf("NewClient() error = %v", err)
+	}
+	if err := client.DoJSON(context.Background(), Request{Endpoint: EndpointProfile, Coin: "btc"}, &ProfileResponse{}); err != nil {
+		t.Fatalf("DoJSON() error = %v", err)
+	}
+	if calls != 3 {
+		t.Fatalf("calls = %d, want 3", calls)
+	}
+	if got := sleeper.delaysText(); got != "1s,2s" {
+		t.Fatalf("retry delays = %q, want 1s,2s", got)
+	}
+}
+
+func TestDoJSONRetryExhaustionReturnsBoundedError(t *testing.T) {
+	t.Parallel()
+
+	const secret = "secret-response-body"
+	client, err := NewClient(Config{
+		BaseURL: "https://pool.braiins.com",
+		Retry: RetryPolicy{
+			MaxAttempts:    3,
+			InitialBackoff: time.Second,
+			MaxBackoff:     5 * time.Second,
+			Sleeper:        &recordingSleeper{},
+		},
+		Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusServiceUnavailable,
+				Header:     http.Header{"Content-Type": []string{"text/plain"}},
+				Body:       io.NopCloser(strings.NewReader(secret)),
+			}, nil
+		}),
+	})
+	if err != nil {
+		t.Fatalf("NewClient() error = %v", err)
+	}
+	err = client.DoJSON(context.Background(), Request{Endpoint: EndpointProfile, Coin: "btc"}, &ProfileResponse{})
+	if err == nil {
+		t.Fatal("DoJSON() error = nil, want error")
+	}
+	if strings.Contains(err.Error(), secret) {
+		t.Fatalf("retry exhaustion leaked body: %v", err)
+	}
+	var status StatusError
+	if !errors.As(err, &status) || status.StatusCode != http.StatusServiceUnavailable {
+		t.Fatalf("error = %T %[1]v, want StatusError 503", err)
+	}
+}
+
+func TestDoJSONCancellationDuringBackoffStopsRetries(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	sleeper := cancelingSleeper{cancel: cancel}
+	calls := 0
+	client, err := NewClient(Config{
+		BaseURL: "https://pool.braiins.com",
+		Retry: RetryPolicy{
+			MaxAttempts:    3,
+			InitialBackoff: time.Second,
+			MaxBackoff:     5 * time.Second,
+			Sleeper:        sleeper,
+		},
+		Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+			calls++
+			return &http.Response{
+				StatusCode: http.StatusInternalServerError,
+				Body:       io.NopCloser(strings.NewReader(`ignored`)),
+			}, nil
+		}),
+	})
+	if err != nil {
+		t.Fatalf("NewClient() error = %v", err)
+	}
+	err = client.DoJSON(ctx, Request{Endpoint: EndpointProfile, Coin: "btc"}, &ProfileResponse{})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("DoJSON() error = %v, want context.Canceled", err)
+	}
+	if calls != 1 {
+		t.Fatalf("calls = %d, want 1", calls)
+	}
+}
+
+func TestDoJSONRateLimitRetryAfterHandling(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		header string
+		want   string
+	}{
+		"seconds":   {header: "2", want: "2s"},
+		"capped":    {header: "60", want: "5s"},
+		"malformed": {header: "soon", want: "5s"},
+		"missing":   {header: "", want: "5s"},
+		"date":      {header: "Sun, 26 Jul 2026 12:00:03 GMT", want: "3s"},
+	}
+	for name, tt := range tests {
+		tt := tt
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			sleeper := &recordingSleeper{}
+			calls := 0
+			client, err := NewClient(Config{
+				BaseURL: "https://pool.braiins.com",
+				Retry: RetryPolicy{
+					MaxAttempts:      2,
+					MaxBackoff:       5 * time.Second,
+					RateLimitBackoff: 5 * time.Second,
+					Sleeper:          sleeper,
+					Now:              func() time.Time { return time.Date(2026, 7, 26, 12, 0, 0, 0, time.UTC) },
+				},
+				Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+					calls++
+					if calls == 1 {
+						header := http.Header{}
+						if tt.header != "" {
+							header.Set("Retry-After", tt.header)
+						}
+						return &http.Response{
+							StatusCode: http.StatusTooManyRequests,
+							Header:     header,
+							Body:       io.NopCloser(strings.NewReader(`ignored`)),
+						}, nil
+					}
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Body:       io.NopCloser(strings.NewReader(`{"username":"example","btc":{"hash_rate_unit":"Gh/s"}}`)),
+					}, nil
+				}),
+			})
+			if err != nil {
+				t.Fatalf("NewClient() error = %v", err)
+			}
+			if err := client.DoJSON(context.Background(), Request{Endpoint: EndpointProfile, Coin: "btc"}, &ProfileResponse{}); err != nil {
+				t.Fatalf("DoJSON() error = %v", err)
+			}
+			if got := sleeper.delaysText(); got != tt.want {
+				t.Fatalf("retry delay = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestDecimalPreservesJSONNumberAndStringPrecision(t *testing.T) {
 	t.Parallel()
 
@@ -194,4 +365,30 @@ type roundTripFunc func(*http.Request) (*http.Response, error)
 
 func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 	return f(req)
+}
+
+type recordingSleeper struct {
+	delays []time.Duration
+}
+
+func (s *recordingSleeper) Sleep(_ context.Context, delay time.Duration) error {
+	s.delays = append(s.delays, delay)
+	return nil
+}
+
+func (s *recordingSleeper) delaysText() string {
+	values := make([]string, 0, len(s.delays))
+	for _, delay := range s.delays {
+		values = append(values, delay.String())
+	}
+	return strings.Join(values, ",")
+}
+
+type cancelingSleeper struct {
+	cancel context.CancelFunc
+}
+
+func (s cancelingSleeper) Sleep(ctx context.Context, _ time.Duration) error {
+	s.cancel()
+	return ctx.Err()
 }

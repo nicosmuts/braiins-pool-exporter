@@ -156,10 +156,14 @@ func TestCategorizeAccountErrors(t *testing.T) {
 	}{
 		"unauthorized": {err: braiins.StatusError{StatusCode: http.StatusUnauthorized}, want: "unauthorized"},
 		"forbidden":    {err: braiins.StatusError{StatusCode: http.StatusForbidden}, want: "forbidden"},
-		"http":         {err: braiins.StatusError{StatusCode: http.StatusBadGateway}, want: "http_error"},
+		"rate limited": {err: braiins.StatusError{StatusCode: http.StatusTooManyRequests}, want: "rate_limited"},
+		"server":       {err: braiins.StatusError{StatusCode: http.StatusBadGateway}, want: "server"},
+		"http":         {err: braiins.StatusError{StatusCode: http.StatusNotFound}, want: "http_error"},
 		"canceled":     {err: context.Canceled, want: "canceled"},
 		"timeout":      {err: context.DeadlineExceeded, want: "timeout"},
-		"malformed":    {err: errors.New("decode Braiins API JSON response: unexpected EOF"), want: "malformed"},
+		"decode":       {err: braiins.DecodeError{Err: errors.New("unexpected EOF")}, want: "decode"},
+		"too large":    {err: braiins.ResponseTooLargeError{}, want: "invalid_data"},
+		"transport":    {err: braiins.TransportError{Err: errors.New("transport failed")}, want: "transport"},
 		"other":        {err: errors.New("transport failed"), want: "error"},
 	}
 	for name, tt := range tests {

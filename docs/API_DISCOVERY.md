@@ -71,8 +71,12 @@ Unknown until live validation:
 The live checkpoint spaced requests by about five seconds and observed no
 `Retry-After`, `X-RateLimit-*`, or `RateLimit-*` headers.
 
-Milestone 05 owns retry/backoff policy. Milestone 02 should keep polling no
-faster than the documented safe rate unless stronger evidence is recorded.
+Milestone 05 implements conservative retry/backoff without increasing the
+documented steady-state polling rate. HTTP 429 is treated as `rate_limited`;
+valid `Retry-After` seconds or HTTP-date values are honored up to a five-second
+cap, and missing or malformed values fall back to that same cap. Synthetic
+tests cover this behavior. The exporter does not intentionally trigger live
+rate limits.
 
 ## Endpoint matrix
 

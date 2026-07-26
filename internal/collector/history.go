@@ -20,6 +20,8 @@ const (
 	historyEndpointRewards = "rewards"
 	historyEndpointPayouts = "payouts"
 	defaultHistoryDays     = 7
+	maxRewardRecords       = 1000
+	maxPayoutRecords       = 1000
 )
 
 var (
@@ -125,7 +127,7 @@ func (m *HistoryMetrics) PollRewards(ctx context.Context) error {
 	}
 	snapshot, err := buildRewardSnapshot(envelope, m.coin, m.clock.Now(), start, end)
 	if err != nil {
-		m.recordHistoryRequest(historyEndpointRewards, "malformed")
+		m.recordHistoryRequest(historyEndpointRewards, "invalid_data")
 		return err
 	}
 	m.recordHistoryRequest(historyEndpointRewards, "success")
@@ -147,7 +149,7 @@ func (m *HistoryMetrics) PollPayouts(ctx context.Context) error {
 	}
 	snapshot, err := buildPayoutSnapshot(response, m.clock.Now(), start, end)
 	if err != nil {
-		m.recordHistoryRequest(historyEndpointPayouts, "malformed")
+		m.recordHistoryRequest(historyEndpointPayouts, "invalid_data")
 		return err
 	}
 	m.recordHistoryRequest(historyEndpointPayouts, "success")
@@ -277,6 +279,9 @@ func buildRewardSnapshot(envelope braiins.CoinEnvelope[braiins.RewardsResponse],
 	if !ok {
 		return nil, errors.New("Braiins rewards response missing configured coin")
 	}
+	if len(response.DailyRewards) > maxRewardRecords {
+		return nil, errors.New("Braiins rewards response exceeds record limit")
+	}
 	components := zeroRewardComponents()
 	seen := map[string]struct{}{}
 	for _, reward := range response.DailyRewards {
@@ -309,6 +314,9 @@ func buildRewardSnapshot(envelope braiins.CoinEnvelope[braiins.RewardsResponse],
 }
 
 func buildPayoutSnapshot(response braiins.PayoutsResponse, collectedAt, start, end time.Time) (*payoutSnapshot, error) {
+	if len(response.Onchain)+len(response.Lightning) > maxPayoutRecords {
+		return nil, errors.New("Braiins payouts response exceeds record limit")
+	}
 	snapshot := &payoutSnapshot{
 		collectedAt: collectedAt,
 		amounts:     zeroPayoutTotals(),

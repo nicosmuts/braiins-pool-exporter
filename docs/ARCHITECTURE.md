@@ -129,6 +129,32 @@ the collector performs one request per endpoint per window and deduplicates
 exact repeated records within that response only. Historical backfill remains
 out of scope unless a future timestamp-aware ingestion design is approved.
 
+## Milestone 05 hardening decisions
+
+Milestone 05 hardens the existing profile, workers, rewards, and payouts
+polling path without adding new business metrics.
+
+| Decision | Policy |
+|---|---|
+| Retry eligibility | Retry transient transport failures, request timeouts, HTTP 429, and HTTP 5xx. Do not retry invalid credentials, forbidden access, HTTP 4xx other than 429, decode errors, schema/validation errors, local configuration errors, or cancellation. |
+| Retry count | A logical poll may make at most three attempts: one initial request and two retries. |
+| Backoff formula | Non-rate-limit retries use deterministic exponential backoff: 1 second, then 2 seconds. |
+| Maximum backoff | Any computed wait is capped at 5 seconds. |
+| Jitter policy | No jitter in this milestone. The exporter already spaces enabled endpoints by about five seconds, and deterministic waits keep testing clear. |
+| Cancellation behavior | Context cancellation interrupts in-flight requests and retry waits. A canceled wait returns `canceled` and no further attempts start. |
+| Rate-limit behavior | HTTP 429 is classified as `rate_limited`. A valid `Retry-After` seconds or HTTP-date value is honored up to the 5-second cap. Missing, negative, malformed, or excessive values fall back to the capped 5-second conservative delay. |
+| Timeout ownership | `BRAIINS_POOL_TIMEOUT` configures the HTTP client's per-attempt timeout, defaulting to 10 seconds. Poll lifecycle cancellation owns shutdown and retry-wait cancellation. No endpoint-specific timeout is added in this milestone. |
+| Cache retention | Failed polls preserve each endpoint's last-known-good snapshot. Successful authoritative empty responses replace previous data with that endpoint's documented empty representation. |
+| Staleness thresholds | Data older than five poll intervals is operationally stale. Stale-but-valid data remains exported; `braiins_pool_data_age_seconds` is the bounded operational signal. No new stale metric is added because data age already exposes the transition without expanding the metric contract. |
+| Readiness impact | Readiness remains tied only to initial account profile success when account collection is enabled. Worker, rewards, and payouts staleness or failure do not block readiness. |
+| Partial-endpoint failure | Profile, workers, rewards, and payouts maintain independent request counters, last-success timestamps, data age, and last-known-good caches. |
+| Poll overlap prevention | Polling is serialized in one lifecycle-owned loop. The next cycle is scheduled after the previous cycle completes and then waits the configured poll interval, so a slow endpoint cannot overlap itself. |
+| Concurrent scrape behavior | Prometheus scrapes use cached snapshots only. Snapshot replacement is lock-protected, and reward/payout snapshots are deep-copied before exposition. |
+| Error classification | Public request results are bounded: `success`, `unauthorized`, `forbidden`, `rate_limited`, `timeout`, `transport`, `server`, `decode`, `invalid_data`, `limit_exceeded`, `canceled`, and `http_error` for unexpected non-retryable HTTP statuses. |
+| Logging and redaction | Poll errors return bounded categories where private identifiers may exist. The API client never includes response bodies, authorization headers, full URLs, or raw header values in errors. |
+| Resource limits | HTTP responses are capped at 1 MiB. Worker snapshots are capped by `BRAIINS_POOL_MAX_WORKERS`. Rewards and payouts accept at most 1,000 records each per bounded window. Payout/reward deduplication maps are bounded by those record caps. |
+| Performance targets | Cached scrapes should be independent of API latency, allocation-conscious, and benchmarked with synthetic account, worker, rewards, and payouts snapshots. Benchmarks are engineering evidence, not release SLOs. |
+
 ## Deployment boundary
 
 The exporter binary and future container are public-project artifacts.

@@ -7,9 +7,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
+	"net"
 	"net/http"
 	"net/url"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -42,6 +45,7 @@ type Client struct {
 	baseURL *url.URL
 	token   Secret
 	client  *http.Client
+	retry   RetryPolicy
 }
 
 // String returns a non-sensitive client summary.
@@ -65,6 +69,38 @@ type Config struct {
 	Token     Secret
 	Timeout   time.Duration
 	Transport RoundTripper
+	Retry     RetryPolicy
+}
+
+// RetryPolicy bounds retry behavior for transient Braiins API failures.
+type RetryPolicy struct {
+	MaxAttempts      int
+	InitialBackoff   time.Duration
+	MaxBackoff       time.Duration
+	RateLimitBackoff time.Duration
+	Sleeper          Sleeper
+	Now              func() time.Time
+}
+
+// Sleeper waits between retry attempts and must honor context cancellation.
+type Sleeper interface {
+	Sleep(context.Context, time.Duration) error
+}
+
+type timerSleeper struct{}
+
+func (timerSleeper) Sleep(ctx context.Context, delay time.Duration) error {
+	if delay <= 0 {
+		return nil
+	}
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
 }
 
 // NewClient constructs a Client without making network calls.
@@ -94,7 +130,14 @@ func NewClient(cfg Config) (*Client, error) {
 	return &Client{
 		baseURL: parsed,
 		token:   cfg.Token,
-		client:  &http.Client{Timeout: timeout, Transport: transport},
+		client: &http.Client{
+			Timeout:   timeout,
+			Transport: transport,
+			CheckRedirect: func(*http.Request, []*http.Request) error {
+				return errors.New("Braiins API redirects are not followed")
+			},
+		},
+		retry: normalizeRetryPolicy(cfg.Retry),
 	}, nil
 }
 
@@ -154,31 +197,54 @@ func (c *Client) NewRequest(ctx context.Context, req Request) (*http.Request, er
 	return httpReq, nil
 }
 
-// DoJSON executes a read-only request and decodes a JSON response.
+// DoJSON executes a read-only request with bounded retries and decodes a JSON
+// response.
 func (c *Client) DoJSON(ctx context.Context, req Request, out any) error {
+	var err error
+	for attempt := 1; attempt <= c.retry.MaxAttempts; attempt++ {
+		err = c.doJSONOnce(ctx, req, out)
+		if err == nil {
+			return nil
+		}
+		if !shouldRetry(ctx, err) || attempt == c.retry.MaxAttempts {
+			return err
+		}
+		delay := c.retryDelay(err, attempt)
+		if sleepErr := c.retry.Sleeper.Sleep(ctx, delay); sleepErr != nil {
+			return sleepErr
+		}
+	}
+	return err
+}
+
+func (c *Client) doJSONOnce(ctx context.Context, req Request, out any) error {
 	httpReq, err := c.NewRequest(ctx, req)
 	if err != nil {
 		return err
 	}
 	resp, err := c.client.Do(httpReq)
 	if err != nil {
-		return fmt.Errorf("Braiins API request failed: %w", safeTransportError(err))
+		return TransportError{Err: safeTransportError(err), Timeout: isTimeoutError(err)}
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes+1))
 	if err != nil {
-		return fmt.Errorf("read Braiins API response: %w", err)
+		return TransportError{Err: safeTransportError(err), Timeout: isTimeoutError(err)}
 	}
 	if len(body) > maxResponseBytes {
-		return errors.New("Braiins API response exceeds size limit")
+		return ResponseTooLargeError{}
 	}
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return StatusError{StatusCode: resp.StatusCode, ContentType: resp.Header.Get("Content-Type")}
+		return StatusError{
+			StatusCode:  resp.StatusCode,
+			ContentType: resp.Header.Get("Content-Type"),
+			RetryAfter:  resp.Header.Get("Retry-After"),
+		}
 	}
 	decoder := json.NewDecoder(bytes.NewReader(body))
 	decoder.UseNumber()
 	if err := decoder.Decode(out); err != nil {
-		return fmt.Errorf("decode Braiins API JSON response: %w", err)
+		return DecodeError{Err: err}
 	}
 	return nil
 }
@@ -217,6 +283,7 @@ func (c *Client) Payouts(ctx context.Context, coin, fromDate, toDate string) (Pa
 type StatusError struct {
 	StatusCode  int
 	ContentType string
+	RetryAfter  string
 }
 
 func (e StatusError) Error() string {
@@ -224,6 +291,125 @@ func (e StatusError) Error() string {
 		return fmt.Sprintf("Braiins API returned HTTP %d", e.StatusCode)
 	}
 	return fmt.Sprintf("Braiins API returned HTTP %d (%s)", e.StatusCode, e.ContentType)
+}
+
+// TransportError describes a request or response-read failure after
+// sanitization.
+type TransportError struct {
+	Err     error
+	Timeout bool
+}
+
+func (e TransportError) Error() string {
+	if e.Err == nil {
+		return "Braiins API transport failed"
+	}
+	return "Braiins API transport failed: " + e.Err.Error()
+}
+
+func (e TransportError) Unwrap() error { return e.Err }
+
+// DecodeError describes invalid JSON without exposing response content.
+type DecodeError struct {
+	Err error
+}
+
+func (e DecodeError) Error() string { return "decode Braiins API JSON response" }
+
+func (e DecodeError) Unwrap() error { return e.Err }
+
+// ResponseTooLargeError describes a bounded response-size violation.
+type ResponseTooLargeError struct{}
+
+func (ResponseTooLargeError) Error() string {
+	return "Braiins API response exceeds size limit"
+}
+
+func normalizeRetryPolicy(policy RetryPolicy) RetryPolicy {
+	if policy.MaxAttempts <= 0 {
+		policy.MaxAttempts = 3
+	}
+	if policy.MaxAttempts > 3 {
+		policy.MaxAttempts = 3
+	}
+	if policy.InitialBackoff <= 0 {
+		policy.InitialBackoff = time.Second
+	}
+	if policy.MaxBackoff <= 0 {
+		policy.MaxBackoff = 5 * time.Second
+	}
+	if policy.RateLimitBackoff <= 0 {
+		policy.RateLimitBackoff = 5 * time.Second
+	}
+	if policy.Sleeper == nil {
+		policy.Sleeper = timerSleeper{}
+	}
+	if policy.Now == nil {
+		policy.Now = time.Now
+	}
+	return policy
+}
+
+func shouldRetry(ctx context.Context, err error) bool {
+	if err == nil || ctx.Err() != nil || errors.Is(err, context.Canceled) {
+		return false
+	}
+	var status StatusError
+	if errors.As(err, &status) {
+		return status.StatusCode == http.StatusTooManyRequests || (status.StatusCode >= 500 && status.StatusCode <= 599)
+	}
+	var transport TransportError
+	if errors.As(err, &transport) {
+		return true
+	}
+	return false
+}
+
+func (c *Client) retryDelay(err error, attempt int) time.Duration {
+	var status StatusError
+	if errors.As(err, &status) && status.StatusCode == http.StatusTooManyRequests {
+		delay, ok := parseRetryAfter(status.RetryAfter, c.retry.Now())
+		if !ok {
+			delay = c.retry.RateLimitBackoff
+		}
+		return capDuration(delay, c.retry.MaxBackoff)
+	}
+	multiplier := math.Pow(2, float64(attempt-1))
+	delay := time.Duration(float64(c.retry.InitialBackoff) * multiplier)
+	return capDuration(delay, c.retry.MaxBackoff)
+}
+
+func parseRetryAfter(value string, now time.Time) (time.Duration, bool) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return 0, false
+	}
+	seconds, err := strconv.ParseInt(value, 10, 64)
+	if err == nil {
+		if seconds < 0 {
+			return 0, false
+		}
+		return time.Duration(seconds) * time.Second, true
+	}
+	date, err := http.ParseTime(value)
+	if err != nil {
+		return 0, false
+	}
+	delay := date.Sub(now)
+	if delay < 0 {
+		return 0, false
+	}
+	return delay, true
+}
+
+func capDuration(value, max time.Duration) time.Duration {
+	if value < 0 {
+		return max
+	}
+	if value > max {
+		return max
+	}
+	return value
 }
 
 func endpointPath(endpoint Endpoint, coin, group string) (string, error) {
@@ -265,6 +451,17 @@ func safeTransportError(err error) error {
 	text = redactHeaderValue(text)
 	text = redactQuerySecrets(text)
 	return errors.New(text)
+}
+
+func isTimeoutError(err error) bool {
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return true
+	}
+	var netErr net.Error
+	return errors.As(err, &netErr) && netErr.Timeout()
 }
 
 func redactHeaderValue(text string) string {

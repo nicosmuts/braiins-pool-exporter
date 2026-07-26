@@ -56,7 +56,7 @@ first successful account poll, account data metrics are omitted.
 | `braiins_pool_account_hashrate_ghs` | gauge | `window` | profile: `hash_rate_5m`, `hash_rate_60m`, `hash_rate_24h`, `hash_rate_yesterday` | source `Gh/s`, export as `Gh/s` | omit missing windows; stale snapshot remains explicit through freshness metric |
 | `braiins_pool_account_balance_btc` | gauge | none | profile: `current_balance` | decimal BTC string parsed at exposition boundary | omit if absent; never label by account |
 | `braiins_pool_account_workers` | gauge | `state` | profile: `ok_workers`, `low_workers`, `off_workers`, `dis_workers` | worker count | states map to `ok`, `low`, `off`, `dis` |
-| `braiins_pool_api_requests_total` | counter | `endpoint`, `result` | exporter HTTP client | request count | endpoint is `profile`; result is one of `success`, `unauthorized`, `forbidden`, `http_error`, `timeout`, `canceled`, `malformed`, or `error` |
+| `braiins_pool_api_requests_total` | counter | `endpoint`, `result` | exporter HTTP client | logical poll count | endpoint is `profile`; result is one of `success`, `unauthorized`, `forbidden`, `rate_limited`, `timeout`, `transport`, `server`, `decode`, `invalid_data`, `canceled`, `http_error`, or `error` |
 | `braiins_pool_api_last_success_timestamp_seconds` | gauge | `endpoint` | exporter polling state | Unix seconds | emitted only after a successful profile poll |
 | `braiins_pool_data_age_seconds` | gauge | `endpoint` | exporter polling state | seconds | age of latest accepted profile snapshot |
 
@@ -82,7 +82,7 @@ polls preserve the previous snapshot.
 | `braiins_pool_worker_shares` | gauge | `worker`, `window` | workers: `shares_5m`, `shares_60m`, `shares_24h` | rolling-window shares | omit missing windows; not a counter |
 | `braiins_pool_worker_last_share_timestamp_seconds` | gauge | `worker` | workers: `last_share` | Unix seconds | omit if absent or null; no timestamp labels |
 | `braiins_pool_worker_last_share_age_seconds` | gauge | `worker` | workers: `last_share` | seconds | omitted when last-share timestamp is absent |
-| `braiins_pool_api_requests_total` | counter | `endpoint`, `result` | exporter HTTP client | request count | endpoint includes `workers`; result is one of `success`, `unauthorized`, `forbidden`, `http_error`, `timeout`, `canceled`, `malformed`, `limit_exceeded`, or `error` |
+| `braiins_pool_api_requests_total` | counter | `endpoint`, `result` | exporter HTTP client | logical poll count | endpoint includes `workers`; result is one of `success`, `unauthorized`, `forbidden`, `rate_limited`, `timeout`, `transport`, `server`, `decode`, `invalid_data`, `limit_exceeded`, `canceled`, `http_error`, or `error` |
 | `braiins_pool_api_last_success_timestamp_seconds` | gauge | `endpoint` | exporter polling state | Unix seconds | emitted for endpoint `workers` only after a successful worker poll |
 | `braiins_pool_data_age_seconds` | gauge | `endpoint` | exporter polling state | seconds | age of latest accepted worker snapshot |
 
@@ -116,7 +116,7 @@ endpoint blocks readiness.
 | `braiins_pool_reward_daily_btc` | gauge | `component` | daily rewards: `total_reward`, `mining_reward`, `bos_plus_reward`, `referral_bonus`, `referral_reward` | decimal BTC aggregated exactly, exposed as BTC | bounded-window aggregate by `total`, `mining`, `bos_plus`, `referral_bonus`, and `referral_reward`; no date labels |
 | `braiins_pool_payout_amount_sats` | gauge | `rail`, `status` | payouts: `amount_sats` | integer satoshis | bounded-window aggregate by rail `onchain`/`lightning` and status `queued`/`confirmed`/`failed`/`unknown`; no destination or event labels |
 | `braiins_pool_payout_fee_sats` | gauge | `rail`, `status` | payouts: `fee_sats` | integer satoshis | same bounded labels and failure behavior as payout amount |
-| `braiins_pool_api_requests_total` | counter | `endpoint`, `result` | exporter HTTP client | request count | endpoint includes `rewards` and `payouts`; result is one of `success`, `unauthorized`, `forbidden`, `http_error`, `timeout`, `canceled`, `malformed`, or `error` |
+| `braiins_pool_api_requests_total` | counter | `endpoint`, `result` | exporter HTTP client | logical poll count | endpoint includes `rewards` and `payouts`; result is one of `success`, `unauthorized`, `forbidden`, `rate_limited`, `timeout`, `transport`, `server`, `decode`, `invalid_data`, `canceled`, `http_error`, or `error` |
 | `braiins_pool_api_last_success_timestamp_seconds` | gauge | `endpoint` | exporter polling state | Unix seconds | emitted per endpoint only after that endpoint's successful poll |
 | `braiins_pool_data_age_seconds` | gauge | `endpoint` | exporter polling state | seconds | age of latest accepted rewards or payouts snapshot |
 
@@ -146,3 +146,13 @@ or payout timestamps encoded as labels. Milestone 04 chooses rolling
 bounded-window summary gauges and lets Prometheus accumulate history after
 deployment. If users require backfill later, that must be a separate
 timestamp-aware ingestion design outside ordinary collector semantics.
+
+## Hardening and staleness behavior
+
+Milestone 05 retries happen inside a logical poll before the poll result is
+recorded. `braiins_pool_api_requests_total` therefore counts logical polls by
+final bounded result, not individual HTTP attempts. Operators can infer stale
+state from `braiins_pool_data_age_seconds`; data older than five configured
+poll intervals is considered operationally stale. Stale-but-valid
+last-known-good data remains exported until a later successful poll replaces
+it.
