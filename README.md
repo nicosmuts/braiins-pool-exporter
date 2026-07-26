@@ -6,14 +6,17 @@
 
 <p align="center">
   <a href="https://github.com/nicosmuts/braiins-pool-exporter/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nicosmuts/braiins-pool-exporter/actions/workflows/ci.yml/badge.svg?branch=main"></a>
-  <a href="https://github.com/nicosmuts/braiins-pool-exporter/security/dependabot"><img alt="Dependabot" src="https://img.shields.io/badge/Dependabot-enabled-025E8C?logo=dependabot&logoColor=white"></a>
+  <a href="https://github.com/nicosmuts/braiins-pool-exporter/pulls?q=is%3Apr+is%3Aopen+label%3Adependencies"><img alt="Dependency updates" src="https://img.shields.io/github/issues-pr/nicosmuts/braiins-pool-exporter/dependencies?label=dependency%20updates&color=orange"></a>
+  <a href="https://github.com/nicosmuts/braiins-pool-exporter/issues"><img alt="Open issues" src="https://img.shields.io/github/issues/nicosmuts/braiins-pool-exporter"></a>
+  <a href="https://github.com/nicosmuts/braiins-pool-exporter/pulls"><img alt="Open pull requests" src="https://img.shields.io/github/issues-pr/nicosmuts/braiins-pool-exporter"></a>
+  <a href="https://github.com/nicosmuts/braiins-pool-exporter/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/nicosmuts/braiins-pool-exporter"></a>
+</p>
+
+<p align="center">
   <a href="https://github.com/nicosmuts/braiins-pool-exporter/blob/main/go.mod"><img alt="Go version" src="https://img.shields.io/github/go-mod/go-version/nicosmuts/braiins-pool-exporter?logo=go"></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/nicosmuts/braiins-pool-exporter"></a>
   <a href="https://github.com/nicosmuts/braiins-pool-exporter/releases"><img alt="Release" src="https://img.shields.io/github/v/release/nicosmuts/braiins-pool-exporter?display_name=tag&sort=semver"></a>
   <a href="docs/RELEASE.md"><img alt="GHCR publishing" src="https://img.shields.io/badge/GHCR-tag--gated-2496ED?logo=github&logoColor=white"></a>
-  <a href="https://github.com/nicosmuts/braiins-pool-exporter/issues"><img alt="Open issues" src="https://img.shields.io/github/issues/nicosmuts/braiins-pool-exporter"></a>
-  <a href="https://github.com/nicosmuts/braiins-pool-exporter/pulls"><img alt="Open pull requests" src="https://img.shields.io/github/issues-pr/nicosmuts/braiins-pool-exporter"></a>
-  <a href="https://github.com/nicosmuts/braiins-pool-exporter/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/nicosmuts/braiins-pool-exporter"></a>
 </p>
 
 <p align="center">
@@ -22,7 +25,6 @@
   <img alt="Docker image" src="https://img.shields.io/badge/Docker-image-2496ED?logo=docker&logoColor=white">
   <img alt="Docker Compose stack" src="https://img.shields.io/badge/Docker_Compose-ready-2496ED?logo=docker&logoColor=white">
   <img alt="Braiins Pool API" src="https://img.shields.io/badge/Braiins_Pool-API-6C43E0">
-  <img alt="Go" src="https://img.shields.io/badge/Go-00ADD8?logo=go&logoColor=white">
 </p>
 
 Braiins Pool Exporter is an independent Prometheus exporter for users of the
