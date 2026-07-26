@@ -11,6 +11,7 @@
 !.env.example
 *.local
 secrets/
+/SECRETS.md
 
 # Editors and operating systems
 .idea/
