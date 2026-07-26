@@ -7,10 +7,13 @@
 
 # Local configuration and secrets
 .env
-.env.*
+.env.local
+.env.*.local
 !.env.example
 *.local
-secrets/
+/secrets/*
+!/secrets/.gitkeep
+!/secrets/README.md
 /SECRETS.md
 
 # Editors and operating systems

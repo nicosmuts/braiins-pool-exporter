@@ -14,8 +14,8 @@
 <p align="center">
   <img alt="Prometheus exporter" src="https://img.shields.io/badge/Prometheus-exporter-orange">
   <img alt="Grafana dashboard" src="https://img.shields.io/badge/Grafana-dashboard-f46800">
-  <img alt="Docker planned" src="https://img.shields.io/badge/Docker-planned-2496ed">
-  <img alt="Docker Compose planned" src="https://img.shields.io/badge/Docker%20Compose-planned-2496ed">
+  <img alt="Docker image" src="https://img.shields.io/badge/Docker-image-2496ed">
+  <img alt="Docker Compose stack" src="https://img.shields.io/badge/Docker%20Compose-stack-2496ed">
   <img alt="Braiins Pool API" src="https://img.shields.io/badge/Braiins%20Pool-API-black">
   <img alt="Go" src="https://img.shields.io/badge/Go-00add8">
 </p>
@@ -37,9 +37,9 @@ outside the public repository.
 - Active development.
 - Official API contract verified for the currently implemented collectors.
 - Default Grafana dashboard available.
+- Docker Compose development stack available.
 - Stable releases are not yet published.
-- Docker image, Docker Compose development stack, and release automation are
-  planned.
+- Tag-gated container publishing and GitHub Releases are configured.
 
 ## Features
 
@@ -74,6 +74,7 @@ outside the public repository.
 - Bounded polling, retries, backoff, rate-limit handling, and caching.
 - Stale-but-visible last-known-good data.
 - Graceful shutdown and offline unit tests.
+- Production-oriented multi-stage Docker image.
 
 ### Grafana
 
@@ -89,8 +90,7 @@ outside the public repository.
 ### Requirements
 
 - Go 1.26.4.
-- Prometheus for scraping the exporter.
-- Grafana 10.4 or newer for the included dashboard.
+- Docker with Docker Compose for the full local stack.
 - GNU Make is optional.
 
 ### Clone
@@ -100,44 +100,58 @@ git clone https://github.com/nicosmuts/braiins-pool-exporter.git
 cd braiins-pool-exporter
 ```
 
-### Build
+### Configure
 
 ```sh
-go mod download
-go build -o bin/braiins-pool-exporter ./cmd/braiins-pool-exporter
+cp .env.example .env
 ```
 
-### Run
+Edit `.env` and set either `BRAIINS_POOL_TOKEN` for development or
+`BRAIINS_POOL_TOKEN_FILE=/run/secrets/braiins_pool_token` with a local token
+file at `secrets/braiins_pool_token`.
 
-Without a Braiins token, the exporter starts without making external network
-requests and exposes only self-metrics.
+Leaving both token settings blank is valid for token-free validation. In that
+mode the exporter starts, Prometheus scrapes self-metrics, and Grafana imports
+the dashboard without authenticated Braiins Pool data.
+
+### Start the stack
 
 ```sh
-go run ./cmd/braiins-pool-exporter
+docker compose up --build -d
 ```
 
-The default listen address is `:9108`.
+Open:
+
+- Exporter: <http://localhost:9108>
+- Metrics: <http://localhost:9108/metrics>
+- Prometheus: <http://localhost:9090>
+- Grafana: <http://localhost:3000>
 
 ```sh
 curl http://localhost:9108/-/healthy
 curl http://localhost:9108/-/ready
-curl http://localhost:9108/version
-curl http://localhost:9108/metrics
+docker compose ps
 ```
 
-### Configure Prometheus
+Grafana is provisioned automatically with the Prometheus datasource and the
+`Braiins Pool Exporter` dashboard. For local development, anonymous admin
+access is enabled in Compose.
 
-```yaml
-scrape_configs:
-  - job_name: braiins-pool-exporter
-    static_configs:
-      - targets: ["localhost:9108"]
+### Stop the stack
+
+```sh
+docker compose down -v
 ```
 
-### Import the Grafana dashboard
+### Run without Docker
 
-Import [`grafana/braiins-pool-exporter.json`](grafana/braiins-pool-exporter.json)
-and select your Prometheus datasource for `DS_PROMETHEUS`.
+```sh
+go mod download
+go build -o bin/braiins-pool-exporter ./cmd/braiins-pool-exporter
+go run ./cmd/braiins-pool-exporter
+```
+
+The default listen address is `:9108`.
 
 ## Configuration
 
@@ -181,6 +195,35 @@ line flags are intentionally unsupported.
 Worker labels use Braiins API worker names. Treat the exporter HTTP interface
 as private operational telemetry if worker names reveal internal conventions.
 
+## Containers and releases
+
+The production image is built from [`Dockerfile`](Dockerfile). It uses a
+multi-stage Go build with `CGO_ENABLED=0`, `-buildvcs=false`, a static binary,
+OCI labels, a non-root runtime user, and a container health check.
+
+The local development stack in [`compose.yaml`](compose.yaml) starts exactly
+three services:
+
+- `braiins-pool-exporter`
+- `prometheus`
+- `grafana`
+
+Prometheus uses [`prometheus/prometheus.yml`](prometheus/prometheus.yml) to
+scrape the exporter over the Compose network. Grafana provisions the
+Prometheus datasource and dashboard from `grafana/provisioning/`.
+
+Release publishing is tag-gated. Ordinary pushes and pull requests run
+validation and Docker build checks but do not publish images. Tags matching
+`v*.*.*` build and publish multi-architecture images to:
+
+```text
+ghcr.io/nicosmuts/braiins-pool-exporter
+```
+
+The release workflow publishes semantic-version tags and `latest`, attaches
+OCI metadata, and creates a GitHub Release. Do not create release tags until
+the release contents are reviewed.
+
 ## Metrics
 
 Metric names, labels, units, and behavior are documented in
@@ -194,6 +237,7 @@ contract as the source of truth.
 - [Architecture](docs/ARCHITECTURE.md)
 - [Security design](docs/SECURITY.md)
 - [Development](docs/DEVELOPMENT.md)
+- [Configuration](docs/CONFIGURATION.md)
 - [Grafana dashboard](grafana/README.md)
 - [Contributing](CONTRIBUTING.md)
 
@@ -207,12 +251,12 @@ Completed:
 - Rewards and payouts.
 - Exporter hardening.
 - Default Grafana dashboard.
-
-Planned:
-
 - Docker image.
 - Docker Compose development stack.
 - Release automation.
+
+Planned:
+
 - First stable release.
 
 ## Contributing

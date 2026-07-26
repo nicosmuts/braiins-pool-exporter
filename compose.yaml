@@ -1,0 +1,70 @@
+services:
+  braiins-pool-exporter:
+    build:
+      context: .
+      args:
+        VERSION: dev
+        COMMIT: local
+        BUILD_DATE: local
+    image: ghcr.io/nicosmuts/braiins-pool-exporter:dev
+    command:
+      - --web.listen-address=:9108
+      - --log.format=json
+    environment:
+      BRAIINS_POOL_TOKEN: ${BRAIINS_POOL_TOKEN:-}
+      BRAIINS_POOL_TOKEN_FILE: ${BRAIINS_POOL_TOKEN_FILE:-}
+      BRAIINS_POOL_COIN: ${BRAIINS_POOL_COIN:-btc}
+      BRAIINS_POOL_API_BASE_URL: ${BRAIINS_POOL_API_BASE_URL:-}
+      BRAIINS_POOL_POLL_INTERVAL: ${BRAIINS_POOL_POLL_INTERVAL:-1m}
+      BRAIINS_POOL_TIMEOUT: ${BRAIINS_POOL_TIMEOUT:-10s}
+      BRAIINS_POOL_WORKER_METRICS_ENABLED: ${BRAIINS_POOL_WORKER_METRICS_ENABLED:-true}
+      BRAIINS_POOL_MAX_WORKERS: ${BRAIINS_POOL_MAX_WORKERS:-100}
+      BRAIINS_POOL_REWARDS_ENABLED: ${BRAIINS_POOL_REWARDS_ENABLED:-true}
+      BRAIINS_POOL_PAYOUTS_ENABLED: ${BRAIINS_POOL_PAYOUTS_ENABLED:-true}
+      BRAIINS_POOL_HISTORY_DAYS: ${BRAIINS_POOL_HISTORY_DAYS:-7}
+    ports:
+      - "9108:9108"
+    read_only: true
+    tmpfs:
+      - /tmp
+    volumes:
+      - ./secrets:/run/secrets:ro
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d
+      - --web.enable-lifecycle
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      - braiins-pool-exporter
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.4.19
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_DEFAULT_THEME: dark
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana:/var/lib/grafana/dashboards/braiins-pool-exporter:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  grafana-data:

@@ -73,6 +73,15 @@ worker labels can still be visible to Grafana users because the exporter emits
 the Braiins API worker name as the `worker` label; operators must treat the
 dashboard as private operational telemetry if worker names are sensitive.
 
+Milestone 07 adds container and release engineering without embedding secrets.
+The Docker build context excludes `.env`, local secret files, `SECRETS.md`,
+build outputs, and transient logs. Docker Compose supports token-free
+validation, environment-token development, and token-file operation through the
+ignored `secrets/` directory. GitHub Actions use the repository-scoped
+`GITHUB_TOKEN` for GHCR publishing only on semantic version tag pushes; ordinary
+pull requests and pushes to `main` validate but do not publish images or create
+releases.
+
 Focused security review findings:
 
 - Accepted: tokens are accepted only through environment or mounted file and
@@ -87,8 +96,10 @@ Focused security review findings:
   bound deduplication memory.
 - Accepted: the default dashboard uses only documented exporter metrics and
   stores no deployment-specific values.
-- Deferred: formal dependency, container, SBOM, workflow-permission, and
-  release-contents reviews belong to release milestones.
+- Accepted: container workflow permissions are split between read-only CI and
+  tag-gated release publishing with package/write and contents/write.
+- Deferred: final release-contents review still belongs to the first stable
+  release milestone before any tag is created.
 
 ## Required future tests
 

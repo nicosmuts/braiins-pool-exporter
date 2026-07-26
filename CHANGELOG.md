@@ -10,6 +10,10 @@ and this project intends to follow
 
 ### Added
 
+- Milestone 07 container and release engineering with a production-oriented
+  multi-stage Dockerfile, Docker Compose development stack, Prometheus and
+  Grafana provisioning, `.env.example`, local secret-file handling, CI
+  validation workflow, and tag-gated GHCR/GitHub Release workflow.
 - Milestone 06 default Grafana dashboard with stable UID
   `braiins-pool-exporter`, title `Braiins Pool Exporter`, a Prometheus
   datasource variable, portable job/instance/worker filters, account, worker,

@@ -36,6 +36,66 @@ Report the exact failure rather than claiming it passed. On Windows hosts
 without `gcc`, use an already-authorized Linux, WSL, CI, or official Go
 container environment rather than installing broad tooling silently.
 
+## Docker development stack
+
+The Compose stack starts only the exporter, Prometheus, and Grafana:
+
+```sh
+cp .env.example .env
+docker compose up --build -d
+docker compose ps
+```
+
+Open:
+
+- exporter: <http://localhost:9108>
+- Prometheus: <http://localhost:9090>
+- Grafana: <http://localhost:3000>
+
+Prometheus is provisioned from `prometheus/prometheus.yml`. Grafana is
+provisioned from `grafana/provisioning/` and imports the dashboard from
+`grafana/braiins-pool-exporter.json`.
+
+Token-free validation is supported. With both `BRAIINS_POOL_TOKEN` and
+`BRAIINS_POOL_TOKEN_FILE` blank, the exporter starts without external Braiins
+Pool API calls; Prometheus still scrapes self-metrics and Grafana still imports
+the dashboard.
+
+For local token-file validation, create `secrets/braiins_pool_token` and set
+`BRAIINS_POOL_TOKEN_FILE=/run/secrets/braiins_pool_token` in `.env`. Files in
+`secrets/` are ignored except for `README.md` and `.gitkeep`.
+
+Stop and remove local volumes with:
+
+```sh
+docker compose down -v
+```
+
+## Container image
+
+The production image is built from `Dockerfile`.
+
+```sh
+docker build -t ghcr.io/nicosmuts/braiins-pool-exporter:dev .
+docker run --rm -p 9108:9108 ghcr.io/nicosmuts/braiins-pool-exporter:dev
+```
+
+The runtime container uses a non-root user and supports read-only filesystem
+operation with a writable `/tmp` tmpfs in Compose. Do not copy `.env`,
+`SECRETS.md`, local `secrets/`, or raw API responses into images.
+
+## GitHub Actions
+
+`.github/workflows/ci.yml` runs on pull requests and pushes to `main`. It
+checks formatting, `go vet`, unit tests, race tests, `git diff --check`,
+Docker build, and `docker compose config`.
+
+`.github/workflows/release.yml` runs only for tags matching `v*.*.*`. It
+validates the repository, builds linux/amd64 and linux/arm64 images, pushes to
+`ghcr.io/nicosmuts/braiins-pool-exporter`, attaches OCI metadata, requests
+SBOM/provenance from BuildKit, and creates a GitHub Release. Do not create
+release tags until release contents are reviewed.
+
 ## Manual smoke test
 
 Start the exporter without a token:

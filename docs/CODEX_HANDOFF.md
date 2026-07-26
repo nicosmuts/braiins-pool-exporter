@@ -137,7 +137,26 @@ Milestone 06 adds the reusable default Grafana dashboard:
   usage, metric references, units, portability filters, counter handling,
   absence of alert definitions, and forbidden public values.
 
-No container, release, or deployment work exists.
+Milestone 07 adds container and release engineering:
+
+- `Dockerfile` builds a static linux binary with `CGO_ENABLED=0`,
+  `-buildvcs=false`, version metadata injection, OCI labels, a non-root Alpine
+  runtime, and a container health check;
+- `compose.yaml` starts exactly three services: exporter, Prometheus, and
+  Grafana;
+- Prometheus scrapes the exporter using `prometheus/prometheus.yml`;
+- Grafana provisions the Prometheus datasource and default dashboard from
+  `grafana/provisioning/`;
+- `.env.example` documents only supported configuration variables;
+- `secrets/` supports ignored local token files while tracking only
+  `.gitkeep` and `README.md`;
+- `.github/workflows/ci.yml` validates pull requests and `main` pushes without
+  publishing artifacts;
+- `.github/workflows/release.yml` publishes multi-arch GHCR images and creates
+  GitHub Releases only for `v*.*.*` tag pushes.
+
+No Kubernetes, Helm, production deployment, release tag, or Milestone 08 work
+exists.
 
 ## Validation caveats
 
@@ -199,11 +218,11 @@ available. The passing checkpoint used a clean public clone at
 ## GitHub tracking
 
 The repository has exactly ten milestones, 00 through 09, and exactly twelve
-issues: one parent and eleven deliverables. Milestones 00 through 05 are
-closed, issues #1 through #6 are closed, and parent issue #12 is updated
-through Milestone 05. Milestone 06 issue #7 owns the default Grafana dashboard
-work. Issue #8 and Milestone 07 must remain open and not started until the
-dashboard milestone is validated, published, and tracked.
+issues: one parent and eleven deliverables. Milestones 00 through 06 are
+closed, issues #1 through #7 are closed, and parent issue #12 is updated
+through Milestone 06. Milestone 07 issue #8 owns container and release
+engineering. Issue #9 and Milestone 08 must remain open and not started until
+container/release engineering is validated, published, and tracked.
 
 ## Validation commands
 
@@ -218,6 +237,11 @@ go test -count=1 ./...
 go test -count=1 ./grafana
 go test -race -count=1 ./...
 go build -buildvcs=false -o bin/braiins-pool-exporter.exe ./cmd/braiins-pool-exporter
+docker build -t ghcr.io/nicosmuts/braiins-pool-exporter:dev .
+docker compose config
+docker compose up --build -d
+docker compose ps
+docker compose down -v
 git diff --check
 git status --short --branch
 ```
@@ -254,9 +278,9 @@ the checked response, nullable worker fields beyond the checked response,
 future reward/payout schema additions, and the correct daily-hashrate group
 selector.
 
-Milestone 07 is the next implementation boundary and should add only container
-and release engineering after Milestone 06 is fully validated and tracked. Do
-not publish images, create tags/releases, modify deployment manifests, or begin
+Milestone 08 is the next implementation boundary and should prepare the first
+public release after Milestone 07 is fully validated and tracked. Do not create
+release tags, publish images manually, modify deployment manifests, or begin
 production integration before the corresponding approvals and milestones.
 
 ## Expected future-session report

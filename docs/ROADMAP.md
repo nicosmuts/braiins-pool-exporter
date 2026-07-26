@@ -52,12 +52,15 @@ metrics emitted by this exporter.
 
 ## Milestone 07 — Containers and Release Engineering
 
-Status: not started.
+Status: implemented with Dockerfile, Compose development stack, CI validation,
+and tag-gated release publishing workflow.
 
 Add a production multi-stage Dockerfile, multi-architecture GHCR publishing,
 version injection, CI/CD, release procedure, and SBOM/provenance planning.
 
 ## Milestone 08 — First Public Release
+
+Status: not started.
 
 Complete documentation, license, dependency, history, fixture, and security
 reviews; produce `v0.1.0`; explicitly review repository visibility before any
