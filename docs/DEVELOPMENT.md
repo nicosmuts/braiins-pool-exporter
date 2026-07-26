@@ -3,7 +3,7 @@
 ## Toolchain
 
 Milestone 00 was initialized with Go 1.26.4 on Windows/amd64. The repository
-records `go 1.26.0` and `toolchain go1.26.4` in `go.mod`, plus `1.26.4` in
+records `go 1.26.0` and `toolchain go1.26.5` in `go.mod`, plus `1.26.5` in
 `.go-version`.
 
 GNU Make is convenient but not required. `golangci-lint` is optional locally
@@ -80,9 +80,10 @@ docker build -t ghcr.io/nicosmuts/braiins-pool-exporter:dev .
 docker run --rm -p 9108:9108 ghcr.io/nicosmuts/braiins-pool-exporter:dev
 ```
 
-The runtime container uses a non-root user and supports read-only filesystem
-operation with a writable `/tmp` tmpfs in Compose. Do not copy `.env`,
-`SECRETS.md`, local `secrets/`, or raw API responses into images.
+The runtime container uses a distroless non-root image and supports read-only
+filesystem operation with a writable `/tmp` tmpfs in Compose. It does not
+include a shell or package manager. Do not copy `.env`, `SECRETS.md`, local
+`secrets/`, or raw API responses into images.
 
 ## GitHub Actions
 
@@ -93,8 +94,9 @@ Docker build, and `docker compose config`.
 `.github/workflows/release.yml` runs only for tags matching `v*.*.*`. It
 validates the repository, builds linux/amd64 and linux/arm64 images, pushes to
 `ghcr.io/nicosmuts/braiins-pool-exporter`, attaches OCI metadata, requests
-SBOM/provenance from BuildKit, and creates a GitHub Release. Do not create
-release tags until release contents are reviewed.
+SBOM/provenance from BuildKit, and creates a GitHub Release. The release
+procedure and pre-release checklist are documented in `docs/RELEASE.md`. Do not
+create release tags until release contents are reviewed.
 
 ## Manual smoke test
 

@@ -1,0 +1,50 @@
+name: Feature request
+description: Propose a focused exporter, metric, documentation, or release-readiness improvement.
+title: "feat: "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include Braiins API tokens, payout addresses, transaction IDs, worker names from private environments, raw API responses, private URLs, IP addresses, or infrastructure details.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user-facing problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the smallest useful change.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+  - type: textarea
+    id: metric_contract
+    attributes:
+      label: Metric or API contract impact
+      description: If this affects metrics, list names, labels, units, and cardinality/privacy considerations.
+    validations:
+      required: false
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation plan
+      description: Tests, documentation, dashboard checks, or container checks expected for this change.
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy checklist
+      options:
+        - label: This request does not include secrets, private infrastructure details, raw API responses, payout addresses, transaction IDs, or private worker names.
+          required: true

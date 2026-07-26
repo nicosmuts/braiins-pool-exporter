@@ -12,7 +12,7 @@ Thank you for helping improve Braiins Pool Exporter.
 
 ## Development
 
-Use Go 1.26.4 and run:
+Use Go 1.26.5 and run:
 
 ```sh
 go mod tidy

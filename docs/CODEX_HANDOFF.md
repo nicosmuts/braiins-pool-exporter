@@ -13,7 +13,7 @@ behavior to public defaults.
 - Visibility: public
 - Branch: `main`
 - Module: `github.com/nicosmuts/braiins-pool-exporter`
-- Toolchain: Go 1.26.4
+- Toolchain: Go 1.26.5
 - License: Apache-2.0
 
 The foundation, public sanitization, GitHub tracking structure, branch
@@ -140,8 +140,8 @@ Milestone 06 adds the reusable default Grafana dashboard:
 Milestone 07 adds container and release engineering:
 
 - `Dockerfile` builds a static linux binary with `CGO_ENABLED=0`,
-  `-buildvcs=false`, version metadata injection, OCI labels, a non-root Alpine
-  runtime, and a container health check;
+  `-buildvcs=false`, version metadata injection, OCI labels, and a distroless
+  non-root runtime without a shell or package manager;
 - `compose.yaml` starts exactly three services: exporter, Prometheus, and
   Grafana;
 - Prometheus scrapes the exporter using `prometheus/prometheus.yml`;
@@ -155,7 +155,13 @@ Milestone 07 adds container and release engineering:
 - `.github/workflows/release.yml` publishes multi-arch GHCR images and creates
   GitHub Releases only for `v*.*.*` tag pushes.
 
-No Kubernetes, Helm, production deployment, release tag, or Milestone 08 work
+Pre-release repository hardening after Milestone 07 adds Dependabot for Go
+modules, GitHub Actions, Dockerfile, and Docker Compose dependencies; improved
+issue and pull request templates; workflow concurrency; current Node 24-based
+GitHub Action majors; and `docs/RELEASE.md` as the release checklist and
+procedure.
+
+No Kubernetes, Helm, production deployment, release tag, or released version
 exists.
 
 ## Validation caveats
@@ -218,11 +224,10 @@ available. The passing checkpoint used a clean public clone at
 ## GitHub tracking
 
 The repository has exactly ten milestones, 00 through 09, and exactly twelve
-issues: one parent and eleven deliverables. Milestones 00 through 06 are
-closed, issues #1 through #7 are closed, and parent issue #12 is updated
-through Milestone 06. Milestone 07 issue #8 owns container and release
-engineering. Issue #9 and Milestone 08 must remain open and not started until
-container/release engineering is validated, published, and tracked.
+issues: one parent and eleven deliverables. Milestones 00 through 07 are
+closed, issues #1 through #8 are closed, and parent issue #12 is updated
+through Milestone 07. Issue #9 and Milestone 08 own the first public release
+preparation and must remain open until release-specific review is complete.
 
 ## Validation commands
 
@@ -245,6 +250,11 @@ docker compose down -v
 git diff --check
 git status --short --branch
 ```
+
+For release preparation, also validate `.github/dependabot.yml`, inspect
+tracked files and recent history for secrets/private data, verify GitHub
+workflow permissions and branch-protection compatibility, and confirm no release
+tag exists before proceeding.
 
 Manually start the service, request `/metrics`, `/-/healthy`, `/-/ready`, and
 `/version`, then interrupt it to verify clean shutdown and sanitized logs.

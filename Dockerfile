@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM --platform=$BUILDPLATFORM golang:1.26.4-bookworm AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26.5-bookworm AS builder
 
 WORKDIR /src
 
@@ -27,15 +27,11 @@ RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
     -o /out/braiins-pool-exporter \
     ./cmd/braiins-pool-exporter
 
-FROM alpine:3.22
+FROM gcr.io/distroless/static-debian12:nonroot
 
 ARG VERSION=dev
 ARG COMMIT=unknown
 ARG BUILD_DATE=unknown
-
-RUN apk add --no-cache ca-certificates wget \
-    && addgroup -S -g 65532 exporter \
-    && adduser -S -D -H -u 65532 -G exporter exporter
 
 COPY --from=builder --chown=65532:65532 /out/braiins-pool-exporter /usr/local/bin/braiins-pool-exporter
 
@@ -50,8 +46,5 @@ LABEL org.opencontainers.image.title="Braiins Pool Exporter" \
 
 USER 65532:65532
 EXPOSE 9108
-
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget -q -O /dev/null http://127.0.0.1:9108/-/healthy || exit 1
 
 ENTRYPOINT ["/usr/local/bin/braiins-pool-exporter"]

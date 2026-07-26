@@ -60,7 +60,7 @@ version injection, CI/CD, release procedure, and SBOM/provenance planning.
 
 ## Milestone 08 — First Public Release
 
-Status: not started.
+Status: in pre-release review. No release tag has been created.
 
 Complete documentation, license, dependency, history, fixture, and security
 reviews; produce `v0.1.0`; explicitly review repository visibility before any

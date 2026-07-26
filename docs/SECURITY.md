@@ -98,6 +98,8 @@ Focused security review findings:
   stores no deployment-specific values.
 - Accepted: container workflow permissions are split between read-only CI and
   tag-gated release publishing with package/write and contents/write.
+- Accepted: Dependabot monitors Go modules, GitHub Actions, the Dockerfile, and
+  Docker Compose files on a conservative weekly schedule.
 - Deferred: final release-contents review still belongs to the first stable
   release milestone before any tag is created.
 

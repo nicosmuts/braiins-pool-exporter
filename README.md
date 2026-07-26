@@ -89,7 +89,7 @@ outside the public repository.
 
 ### Requirements
 
-- Go 1.26.4.
+- Go 1.26.5.
 - Docker with Docker Compose for the full local stack.
 - GNU Make is optional.
 
@@ -199,7 +199,9 @@ as private operational telemetry if worker names reveal internal conventions.
 
 The production image is built from [`Dockerfile`](Dockerfile). It uses a
 multi-stage Go build with `CGO_ENABLED=0`, `-buildvcs=false`, a static binary,
-OCI labels, a non-root runtime user, and a container health check.
+OCI labels, and a distroless non-root runtime image without a shell or package
+manager. Health is exposed through `/-/healthy` and `/-/ready` and validated by
+orchestrators or external probes.
 
 The local development stack in [`compose.yaml`](compose.yaml) starts exactly
 three services:
@@ -238,6 +240,7 @@ contract as the source of truth.
 - [Security design](docs/SECURITY.md)
 - [Development](docs/DEVELOPMENT.md)
 - [Configuration](docs/CONFIGURATION.md)
+- [Release process](docs/RELEASE.md)
 - [Grafana dashboard](grafana/README.md)
 - [Contributing](CONTRIBUTING.md)
 

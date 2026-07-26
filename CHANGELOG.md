@@ -10,6 +10,12 @@ and this project intends to follow
 
 ### Added
 
+- Pre-release repository hardening with Dependabot for Go modules, GitHub
+  Actions, Dockerfile, and Docker Compose dependencies; improved GitHub issue
+  and pull request templates; workflow concurrency; and a documented first
+  release process.
+- Go toolchain and container build base updated to 1.26.5, with the runtime
+  image hardened to distroless non-root after vulnerability review.
 - Milestone 07 container and release engineering with a production-oriented
   multi-stage Dockerfile, Docker Compose development stack, Prometheus and
   Grafana provisioning, `.env.example`, local secret-file handling, CI
