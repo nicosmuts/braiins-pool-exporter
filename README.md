@@ -1,56 +1,122 @@
 # Braiins Pool Exporter
 
-Braiins Pool Exporter is a lightweight Prometheus exporter for authoritative
-data from the official Braiins Pool API.
+<p align="center">
+  <img src="assets/banner-image.png" width="100%" alt="Braiins Pool Exporter architecture from miner to Braiins Pool, Prometheus, and Grafana">
+</p>
 
-> [!IMPORTANT]
-> This project is under active development. No stable release exists, and the
-> default Grafana dashboard is now available for review. Container, release,
-> and deployment work remain future milestones.
+<p align="center">
+  <a href="https://github.com/nicosmuts/braiins-pool-exporter/blob/main/go.mod"><img alt="Go version" src="https://img.shields.io/badge/go-1.26-blue"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/nicosmuts/braiins-pool-exporter"></a>
+  <a href="https://github.com/nicosmuts/braiins-pool-exporter/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/nicosmuts/braiins-pool-exporter"></a>
+  <a href="https://github.com/nicosmuts/braiins-pool-exporter/issues"><img alt="Open issues" src="https://img.shields.io/github/issues/nicosmuts/braiins-pool-exporter"></a>
+</p>
 
-This independent exporter is designed for Braiins Pool users and keeps
-environment-specific addresses, worker mappings, credentials, and dashboards
-outside the public project.
+<p align="center">
+  <img alt="Prometheus exporter" src="https://img.shields.io/badge/Prometheus-exporter-orange">
+  <img alt="Grafana dashboard" src="https://img.shields.io/badge/Grafana-dashboard-f46800">
+  <img alt="Docker planned" src="https://img.shields.io/badge/Docker-planned-2496ed">
+  <img alt="Docker Compose planned" src="https://img.shields.io/badge/Docker%20Compose-planned-2496ed">
+  <img alt="Braiins Pool API" src="https://img.shields.io/badge/Braiins%20Pool-API-black">
+  <img alt="Go" src="https://img.shields.io/badge/Go-00add8">
+</p>
 
-## Current scope
+Braiins Pool Exporter is an independent Prometheus exporter for users of the
+official Braiins Pool API. It polls verified Braiins Pool account, worker,
+reward, and payout endpoints, normalizes the responses into stable Prometheus
+metrics, and serves them from a small Go HTTP process. Prometheus scrapes the
+exporter rather than the pool API directly, while the included Grafana
+dashboard provides a reusable default view of the exported metrics.
 
-The exporter currently provides:
+Data flows from Avalon miners to Braiins Pool, then through Braiins Pool
+Exporter into Prometheus and Grafana. The exporter keeps deployment-specific
+scrape configuration, worker mappings, credentials, and production dashboards
+outside the public repository.
 
-- a small Go service using `net/http` and `log/slog`;
-- Prometheus, Go runtime, process, build, and readiness metrics;
-- health, readiness, and sanitized version endpoints;
-- environment- or file-based secret loading with redaction safeguards;
-- optional Braiins account profile polling when a token is configured;
-- verified account hashrate, balance, worker-count, request, and freshness
-  metrics;
-- optional Braiins worker polling with bounded per-worker state, hashrate,
-  shares, last-share, request, and freshness metrics;
-- optional bounded rewards and payouts polling with precision-safe BTC reward
-  aggregation, satoshi payout aggregation, request, and freshness metrics;
-- bounded cancellation-aware retry/backoff and privacy-safe rate-limit
-  handling for authenticated API polls;
-- a reusable default Grafana dashboard that uses only documented exporter
-  metrics and portable datasource, job, instance, and worker variables;
-- graceful shutdown and unit tests.
+## Project status
 
-Milestone 01 records the documented official API contract in
-[docs/API_DISCOVERY.md](docs/API_DISCOVERY.md). Implemented and deferred
-metrics are documented in [docs/METRICS.md](docs/METRICS.md).
+- Active development.
+- Official API contract verified for the currently implemented collectors.
+- Default Grafana dashboard available.
+- Stable releases are not yet published.
+- Docker image, Docker Compose development stack, and release automation are
+  planned.
+
+## Features
+
+### Account metrics
+
+- Account hashrate windows.
+- Current account balance.
+- Account worker counts by normalized state.
+- Account freshness and last-success timestamps.
+
+### Worker metrics
+
+- Worker state as bounded one-hot gauges.
+- Worker hashrate windows.
+- Worker share windows.
+- Worker last-share timestamp and age.
+- Bounded worker label cardinality.
+
+### Rewards and payouts
+
+- Bounded reward aggregation by safe reward component.
+- Bounded payout amount and fee aggregation by rail and status.
+- Precision-safe BTC reward accounting.
+- Integer satoshi payout accounting.
+- No reward dates, payout destinations, or transaction identifiers as labels.
+
+### Exporter
+
+- Prometheus, Go runtime, process, build, and readiness metrics.
+- `/metrics`, `/-/healthy`, `/-/ready`, and `/version` endpoints.
+- Environment- or file-based token loading with redaction safeguards.
+- Bounded polling, retries, backoff, rate-limit handling, and caching.
+- Stale-but-visible last-known-good data.
+- Graceful shutdown and offline unit tests.
+
+### Grafana
+
+- Importable default dashboard at
+  [`grafana/braiins-pool-exporter.json`](grafana/braiins-pool-exporter.json).
+- Stable dashboard UID `braiins-pool-exporter`.
+- Prometheus datasource variable.
+- Portable job, instance, and optional worker filters.
+- Account, worker, rewards, payouts, API health, and freshness panels.
 
 ## Quick start
 
-Prerequisites:
+### Requirements
 
-- Go 1.26.4 (recorded in `.go-version` and `go.mod`);
-- GNU Make for Makefile targets (optional on Windows).
+- Go 1.26.4.
+- Prometheus for scraping the exporter.
+- Grafana 10.4 or newer for the included dashboard.
+- GNU Make is optional.
+
+### Clone
+
+```sh
+git clone https://github.com/nicosmuts/braiins-pool-exporter.git
+cd braiins-pool-exporter
+```
+
+### Build
 
 ```sh
 go mod download
+go build -o bin/braiins-pool-exporter ./cmd/braiins-pool-exporter
+```
+
+### Run
+
+Without a Braiins token, the exporter starts without making external network
+requests and exposes only self-metrics.
+
+```sh
 go run ./cmd/braiins-pool-exporter
 ```
 
-The exporter listens on `:9108` by default. Without a Braiins token it exposes
-only self-metrics and makes no external network requests.
+The default listen address is `:9108`.
 
 ```sh
 curl http://localhost:9108/-/healthy
@@ -59,115 +125,109 @@ curl http://localhost:9108/version
 curl http://localhost:9108/metrics
 ```
 
-## HTTP endpoints
+### Configure Prometheus
 
-| Endpoint | Purpose |
-|---|---|
-| `/metrics` | Prometheus exposition |
-| `/-/healthy` | Process liveness; independent of Braiins Pool |
-| `/-/ready` | Initialization readiness |
-| `/version` | Sanitized version, commit, build date, and Go version |
+```yaml
+scrape_configs:
+  - job_name: braiins-pool-exporter
+    static_configs:
+      - targets: ["localhost:9108"]
+```
 
-Foundation readiness means local configuration is valid and the HTTP service
-has initialized. Its semantics must be revisited when polling is added.
+### Import the Grafana dashboard
+
+Import [`grafana/braiins-pool-exporter.json`](grafana/braiins-pool-exporter.json)
+and select your Prometheus datasource for `DS_PROMETHEUS`.
 
 ## Configuration
 
-Command-line flags:
+The exporter requires exactly one Braiins token source when API-derived metrics
+are enabled.
 
-| Flag | Default | Purpose |
-|---|---|---|
-| `--web.listen-address` | `:9108` | HTTP listen address |
-| `--web.telemetry-path` | `/metrics` | Metrics path |
-| `--log.level` | `info` | `debug`, `info`, `warn`, or `error` |
-| `--log.format` | `text` | `text` or `json` |
-| `--config.file` | empty | Reserved until a safe format is defined |
+### Required for Braiins API polling
 
-Account collection is enabled by setting exactly one Braiins token source:
+| Setting | Default | Description |
+|---|---:|---|
+| `BRAIINS_POOL_TOKEN` | unset | Braiins API token value. |
+| `BRAIINS_POOL_TOKEN_FILE` | unset | Path to a file containing the Braiins API token. |
 
-| Environment variable | Purpose |
-|---|---|
-| `BRAIINS_POOL_TOKEN` | Token value |
-| `BRAIINS_POOL_TOKEN_FILE` | Path to a mounted token file |
-| `BRAIINS_POOL_COIN` | Coin selector; only `btc` is currently verified and accepted |
-| `BRAIINS_POOL_API_BASE_URL` | Override for tests or compatible endpoints |
-| `BRAIINS_POOL_POLL_INTERVAL` | Poll interval, default `1m` |
-| `BRAIINS_POOL_TIMEOUT` | HTTP timeout, default `10s` |
-| `BRAIINS_POOL_WORKER_METRICS_ENABLED` | Enable worker metrics when a token is configured, default `true` |
-| `BRAIINS_POOL_MAX_WORKERS` | Maximum accepted workers per snapshot, default `100` |
-| `BRAIINS_POOL_REWARDS_ENABLED` | Enable bounded rewards metrics when a token is configured, default `true` |
-| `BRAIINS_POOL_PAYOUTS_ENABLED` | Enable bounded payout metrics when a token is configured, default `true` |
-| `BRAIINS_POOL_HISTORY_DAYS` | Inclusive rewards/payouts date window, default `7`, maximum `90` |
+Set only one of `BRAIINS_POOL_TOKEN` or `BRAIINS_POOL_TOKEN_FILE`. Token command
+line flags are intentionally unsupported.
 
-Set only one token source. Command-line token flags are intentionally
-unsupported because process listings can expose their values. For containers
-and Kubernetes, prefer a read-only mounted Secret file. Tokens are never metric
-labels and must never be logged.
+### Optional environment variables
 
-See [examples/README.md](examples/README.md) and
-[docs/SECURITY.md](docs/SECURITY.md) for safe usage.
+| Setting | Default | Description |
+|---|---:|---|
+| `BRAIINS_POOL_COIN` | `btc` | Coin selector. Only `btc` is currently verified and accepted. |
+| `BRAIINS_POOL_API_BASE_URL` | official API origin | Override for tests or compatible endpoints. |
+| `BRAIINS_POOL_POLL_INTERVAL` | `1m` | Poll interval. |
+| `BRAIINS_POOL_TIMEOUT` | `10s` | Per-request HTTP timeout. |
+| `BRAIINS_POOL_WORKER_METRICS_ENABLED` | `true` | Enable worker metrics when a token is configured. |
+| `BRAIINS_POOL_MAX_WORKERS` | `100` | Maximum accepted workers per snapshot. |
+| `BRAIINS_POOL_REWARDS_ENABLED` | `true` | Enable bounded rewards metrics. |
+| `BRAIINS_POOL_PAYOUTS_ENABLED` | `true` | Enable bounded payout metrics. |
+| `BRAIINS_POOL_HISTORY_DAYS` | `7` | Inclusive rewards and payouts history window, capped at 90 days. |
 
-When account collection is enabled, readiness requires the first successful
-profile poll. Later transient failures keep the last-known-good account
-snapshot visible while `braiins_pool_data_age_seconds` increases.
+### Command-line flags
 
-Worker metrics use the Braiins API worker name as the `worker` label. Worker
-names may be private operational identifiers; keep the exporter HTTP interface
-private and use `BRAIINS_POOL_WORKER_METRICS_ENABLED=false` if direct worker
-labels are not acceptable for an environment. Worker freshness is independent
-from account freshness and does not block readiness.
+| Flag | Default | Description |
+|---|---:|---|
+| `--web.listen-address` | `:9108` | HTTP listen address. |
+| `--web.telemetry-path` | `/metrics` | Metrics path. |
+| `--log.level` | `info` | Log level: `debug`, `info`, `warn`, or `error`. |
+| `--log.format` | `text` | Log format: `text` or `json`. |
+| `--config.file` | empty | Reserved until a safe configuration format is defined. |
 
-Rewards and payouts use one bounded date-window request per endpoint. BTC
-reward values are aggregated as exact decimals and converted to `float64` only
-for Prometheus exposition. Payout amounts and fees remain integer satoshis.
-No reward dates, payout destinations, transaction IDs, Lightning invoices,
-preimages, account names, or event identifiers are exported as labels.
-Rewards and payouts have independent freshness and do not block readiness.
+Worker labels use Braiins API worker names. Treat the exporter HTTP interface
+as private operational telemetry if worker names reveal internal conventions.
 
-Each logical API poll uses at most three HTTP attempts. Transient transport
-failures, request timeouts, HTTP 429, and HTTP 5xx can be retried with
-deterministic bounded backoff. Invalid credentials, forbidden access, client
-validation errors, decode/schema errors, and cancellation are not retried.
-Stale-but-valid data remains exported; data older than five poll intervals is
-operationally stale and visible through `braiins_pool_data_age_seconds`.
+## Metrics
 
-## Development
+Metric names, labels, units, and behavior are documented in
+[`docs/METRICS.md`](docs/METRICS.md). The dashboard and tests use that metric
+contract as the source of truth.
 
-```sh
-make help
-make check
-```
+## Documentation
 
-Equivalent commands are documented in
-[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md). The Makefile `lint` target requires
-`golangci-lint` to be installed separately.
+- [API discovery](docs/API_DISCOVERY.md)
+- [Metrics](docs/METRICS.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Security design](docs/SECURITY.md)
+- [Development](docs/DEVELOPMENT.md)
+- [Grafana dashboard](grafana/README.md)
+- [Contributing](CONTRIBUTING.md)
 
-## Roadmap and dashboard
+## Roadmap
 
-- [docs/ROADMAP.md](docs/ROADMAP.md) defines Milestones 00 through 09.
-- [docs/API_DISCOVERY.md](docs/API_DISCOVERY.md) records the Milestone 01 API
-  evidence and unknowns.
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) records component boundaries.
-- [grafana/README.md](grafana/README.md) documents the reusable default
-  Grafana dashboard.
-- [grafana/braiins-pool-exporter.json](grafana/braiins-pool-exporter.json)
-  contains the importable dashboard with UID `braiins-pool-exporter` and title
-  `Braiins Pool Exporter`.
+Completed:
 
-Production deployment, device telemetry, Bitcoin prices, wallet monitoring,
-and profitability calculations are separate integration concerns.
+- API verification.
+- Account metrics.
+- Worker metrics.
+- Rewards and payouts.
+- Exporter hardening.
+- Default Grafana dashboard.
+
+Planned:
+
+- Docker image.
+- Docker Compose development stack.
+- Release automation.
+- First stable release.
+
+## Contributing
+
+Contributions are welcome. Please read [`CONTRIBUTING.md`](CONTRIBUTING.md)
+before opening issues or pull requests.
 
 ## Security
 
 Never provide a wallet private key or seed phrase to this exporter. Report
-vulnerabilities according to [SECURITY.md](SECURITY.md).
+vulnerabilities according to [`SECURITY.md`](SECURITY.md).
 
 ## License
 
-Licensed under the [Apache License 2.0](LICENSE). Apache-2.0 was selected for a
-Prometheus-ecosystem project because it is permissive and includes an explicit
-patent grant. This project deliberately adopts Apache-2.0 for public use and
-contribution.
+Licensed under the [Apache License 2.0](LICENSE).
 
 Braiins is a trademark of its respective owner. This independent project is
 not affiliated with or endorsed by Braiins.
