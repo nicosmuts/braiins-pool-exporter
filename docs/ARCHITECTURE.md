@@ -155,6 +155,30 @@ polling path without adding new business metrics.
 | Resource limits | HTTP responses are capped at 1 MiB. Worker snapshots are capped by `BRAIINS_POOL_MAX_WORKERS`. Rewards and payouts accept at most 1,000 records each per bounded window. Payout/reward deduplication maps are bounded by those record caps. |
 | Performance targets | Cached scrapes should be independent of API latency, allocation-conscious, and benchmarked with synthetic account, worker, rewards, and payouts snapshots. Benchmarks are engineering evidence, not release SLOs. |
 
+## Milestone 06 dashboard decisions
+
+The default Grafana dashboard lives under `grafana/` and is a reusable public
+artifact, not production provisioning. It imports with UID
+`braiins-pool-exporter` and title `Braiins Pool Exporter`.
+
+The dashboard depends only on the documented exporter metric contract:
+account, worker, reward, payout, API request, freshness, and exporter
+readiness metrics. It intentionally does not query deferred metrics, standard
+Go/process metrics, miner-device telemetry, Kubernetes metrics, Bitcoin price
+feeds, wallet monitors, or profitability data.
+
+Datasource, job, instance, and worker selection are Grafana variables.
+`braiins_pool_exporter_ready` is used for portable job and instance discovery
+because it is always present when the exporter is scraped. Worker filtering is
+optional and stores no worker values in JSON; runtime worker labels may still
+be private operator data.
+
+No-data states remain visible instead of being converted to false zero. Absent
+series can mean no token, disabled collectors, first poll not complete,
+optional API fields absent, empty variable selections, or missing Prometheus
+scrapes. Panel descriptions carry those caveats so the dashboard does not
+expand the metric contract.
+
 ## Deployment boundary
 
 The exporter binary and future container are public-project artifacts.

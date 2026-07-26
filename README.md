@@ -5,9 +5,8 @@ data from the official Braiins Pool API.
 
 > [!IMPORTANT]
 > This project is under active development. No stable release exists, and the
-> Milestone 05 hardening code is implemented but remains open until race
-> validation passes in a supported cgo environment. Dashboard, container,
-> release, and deployment work remain future milestones.
+> default Grafana dashboard is now available for review. Container, release,
+> and deployment work remain future milestones.
 
 This independent exporter is designed for Braiins Pool users and keeps
 environment-specific addresses, worker mappings, credentials, and dashboards
@@ -30,6 +29,8 @@ The exporter currently provides:
   aggregation, satoshi payout aggregation, request, and freshness metrics;
 - bounded cancellation-aware retry/backoff and privacy-safe rate-limit
   handling for authenticated API polls;
+- a reusable default Grafana dashboard that uses only documented exporter
+  metrics and portable datasource, job, instance, and worker variables;
 - graceful shutdown and unit tests.
 
 Milestone 01 records the documented official API contract in
@@ -147,8 +148,11 @@ Equivalent commands are documented in
 - [docs/API_DISCOVERY.md](docs/API_DISCOVERY.md) records the Milestone 01 API
   evidence and unknowns.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) records component boundaries.
-- [grafana/README.md](grafana/README.md) reserves the reusable dashboard
-  identity without querying speculative metrics.
+- [grafana/README.md](grafana/README.md) documents the reusable default
+  Grafana dashboard.
+- [grafana/braiins-pool-exporter.json](grafana/braiins-pool-exporter.json)
+  contains the importable dashboard with UID `braiins-pool-exporter` and title
+  `Braiins Pool Exporter`.
 
 Production deployment, device telemetry, Bitcoin prices, wallet monitoring,
 and profitability calculations are separate integration concerns.

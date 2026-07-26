@@ -115,8 +115,29 @@ Milestone 05 hardens exporter polling and security:
 - rewards and payouts are capped at 1,000 records per bounded window;
 - concurrent poll/scrape tests and synthetic benchmarks cover the cached
   collectors.
+- race validation passed in Docker using a clean public clone of commit
+  `f916e665b3892bde63f5d8a2a2111d64b0dd5c34`, `golang:1.26.4-bookworm`,
+  linux/amd64, `CGO_ENABLED=1`, and gcc/cc 12.2.0.
 
-No dashboard, container, release, or deployment work exists.
+Milestone 06 adds the reusable default Grafana dashboard:
+
+- dashboard JSON lives at `grafana/braiins-pool-exporter.json`;
+- UID is `braiins-pool-exporter` and title is `Braiins Pool Exporter`;
+- `DS_PROMETHEUS` is a Prometheus datasource variable;
+- `job` and `instance` are portable multi-select include-all variables based
+  on `braiins_pool_exporter_ready`;
+- `worker` is an optional multi-select include-all runtime filter based on
+  `braiins_pool_worker_state`, with no worker values stored in JSON;
+- panels cover exporter readiness, selected instances, API result rate,
+  failed poll ratio, endpoint data age, last successful poll, account
+  hashrate, account balance, account worker counts, worker states, worker
+  status, worker hashrate, worker shares, last-share age, rewards, payout
+  amounts, and payout fees;
+- static Go tests validate dashboard JSON, UID/title, variables, datasource
+  usage, metric references, units, portability filters, counter handling,
+  absence of alert definitions, and forbidden public values.
+
+No container, release, or deployment work exists.
 
 ## Validation caveats
 
@@ -142,17 +163,11 @@ If CGO or `gcc` is unavailable, race-test limitations must be reported with the
 exact command output. Run `golangci-lint run` only if it is already installed
 or installation is explicitly approved.
 
-Milestone 05 race validation blocker recorded on 2026-07-26:
-
-- `go test -race -count=1 ./...` on Windows reported `go: -race requires
-  cgo; enable cgo by setting CGO_ENABLED=1`;
-- retrying with `CGO_ENABLED=1` reported `cgo: C compiler "gcc" not found:
-  exec: "gcc": executable file not found in %PATH%`;
-- Docker was unavailable because the daemon pipe was missing and Docker config
-  access was denied;
-- WSL distro enumeration returned `E_ACCESSDENIED`;
-- Issue #6 and Milestone 05 must remain open until `go test -race -count=1
-  ./...` passes in a supported environment.
+Milestone 05 race validation was completed on 2026-07-26 after Docker became
+available. The passing checkpoint used a clean public clone at
+`f916e665b3892bde63f5d8a2a2111d64b0dd5c34` in `golang:1.26.4-bookworm` and ran
+`go mod download`, `go vet ./...`, `go test -count=1 ./...`, and
+`CGO_ENABLED=1 go test -race -count=1 ./...`.
 
 ## Architecture decisions
 
@@ -176,16 +191,19 @@ Milestone 05 race validation blocker recorded on 2026-07-26:
 - Data age is the staleness signal; stale data is not silently hidden.
 - Never represent historic event dates as current-sample labels.
 - Keep public dashboard logic separate from deployment-specific composite
-  dashboards.
+  dashboards. The default dashboard queries only documented exporter metrics
+  and remains parameterized through datasource, job, instance, and optional
+  worker variables.
 - Accept tokens only through environment or mounted file, never CLI flags.
 
 ## GitHub tracking
 
 The repository has exactly ten milestones, 00 through 09, and exactly twelve
-issues: one parent and eleven deliverables. Milestone 00 is closed. Milestone
-01 should be closed only after the Milestone 01 commit is pushed and issue #2
-is updated with completion evidence. Issue #3 and Milestone 02 must remain open
-until account collector work is explicitly started.
+issues: one parent and eleven deliverables. Milestones 00 through 05 are
+closed, issues #1 through #6 are closed, and parent issue #12 is updated
+through Milestone 05. Milestone 06 issue #7 owns the default Grafana dashboard
+work. Issue #8 and Milestone 07 must remain open and not started until the
+dashboard milestone is validated, published, and tracked.
 
 ## Validation commands
 
@@ -197,6 +215,7 @@ go mod tidy
 gofmt -w .
 go vet ./...
 go test -count=1 ./...
+go test -count=1 ./grafana
 go test -race -count=1 ./...
 go build -buildvcs=false -o bin/braiins-pool-exporter.exe ./cmd/braiins-pool-exporter
 git diff --check
@@ -211,7 +230,9 @@ Worker metrics appear after a successful worker poll unless disabled with
 `BRAIINS_POOL_WORKER_METRICS_ENABLED=false`.
 Rewards and payouts metrics appear after each endpoint's first successful poll
 unless disabled with `BRAIINS_POOL_REWARDS_ENABLED=false` or
-`BRAIINS_POOL_PAYOUTS_ENABLED=false`.
+`BRAIINS_POOL_PAYOUTS_ENABLED=false`. Dashboard changes should also run
+`go test -count=1 ./grafana` to validate JSON, variables, metric references,
+units, portability, and forbidden public values.
 
 ## Security constraints
 
@@ -233,10 +254,10 @@ the checked response, nullable worker fields beyond the checked response,
 future reward/payout schema additions, and the correct daily-hashrate group
 selector.
 
-Milestone 06 is the next implementation boundary and should add only the
-default Grafana dashboard after Milestone 05 is fully validated and tracked.
-Do not begin container, release, or deployment work before the corresponding
-milestones.
+Milestone 07 is the next implementation boundary and should add only container
+and release engineering after Milestone 06 is fully validated and tracked. Do
+not publish images, create tags/releases, modify deployment manifests, or begin
+production integration before the corresponding approvals and milestones.
 
 ## Expected future-session report
 

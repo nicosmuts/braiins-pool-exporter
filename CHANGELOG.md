@@ -10,12 +10,16 @@ and this project intends to follow
 
 ### Added
 
+- Milestone 06 default Grafana dashboard with stable UID
+  `braiins-pool-exporter`, title `Braiins Pool Exporter`, a Prometheus
+  datasource variable, portable job/instance/worker filters, account, worker,
+  reward, payout, API health, and freshness panels, plus static dashboard
+  validation.
 - Milestone 05 exporter hardening with bounded retry/backoff, 429
   `Retry-After` handling, redirect refusal, deterministic poll serialization,
   bounded error categories, reward/payout record caps, concurrent scrape
-  tests, synthetic benchmarks, security review notes, and documented
-  staleness behavior. Race validation remains blocked on the current Windows
-  host until a supported cgo environment is available.
+  tests, synthetic benchmarks, race validation in Docker, security review
+  notes, and documented staleness behavior.
 - Milestone 04 rewards and payouts collector with bounded date-window
   summaries, exact decimal BTC reward aggregation, integer satoshi payout
   aggregation, internal deduplication, independent freshness/failure behavior,

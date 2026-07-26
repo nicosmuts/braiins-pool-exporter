@@ -37,15 +37,22 @@ pagination/date behavior, and a deliberate history model.
 
 ## Milestone 05 — Exporter Hardening
 
+Status: implemented, validated, committed, published, and closed.
+
 Add bounded retry/backoff, last-known-good caching, staleness behavior,
 rate-limit handling, performance validation, race testing, and security review.
 
 ## Milestone 06 — Default Grafana Dashboard
 
+Status: implemented in `grafana/braiins-pool-exporter.json` with static
+dashboard validation.
+
 Build and verify the reusable `braiins-pool-exporter` dashboard using only
 metrics emitted by this exporter.
 
 ## Milestone 07 — Containers and Release Engineering
+
+Status: not started.
 
 Add a production multi-stage Dockerfile, multi-architecture GHCR publishing,
 version injection, CI/CD, release procedure, and SBOM/provenance planning.

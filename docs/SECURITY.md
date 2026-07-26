@@ -65,6 +65,14 @@ worker names, payout identifiers, and raw arbitrary errors are not labels.
 HTTP 429 is exposed only as `rate_limited`, and malformed rate-limit headers
 fall back to a conservative bounded delay without being logged or exported.
 
+Milestone 06 adds the reusable default Grafana dashboard without embedding
+private runtime values. The dashboard JSON contains no datasource UID, job,
+instance, IP address, worker name, account identifier, payout destination,
+transaction identifier, token, live query result, or production URL. Runtime
+worker labels can still be visible to Grafana users because the exporter emits
+the Braiins API worker name as the `worker` label; operators must treat the
+dashboard as private operational telemetry if worker names are sensitive.
+
 Focused security review findings:
 
 - Accepted: tokens are accepted only through environment or mounted file and
@@ -77,6 +85,8 @@ Focused security review findings:
   categories rather than raw error text.
 - Fixed: rewards and payouts now have explicit 1,000-record per-window caps to
   bound deduplication memory.
+- Accepted: the default dashboard uses only documented exporter metrics and
+  stores no deployment-specific values.
 - Deferred: formal dependency, container, SBOM, workflow-permission, and
   release-contents reviews belong to release milestones.
 

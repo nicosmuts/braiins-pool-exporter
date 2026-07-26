@@ -18,6 +18,7 @@ gofmt -w .
 go vet ./...
 go test ./...
 go test -race ./...
+go test -count=1 ./grafana
 go test -run '^$' -bench . -benchmem ./...
 go build ./cmd/braiins-pool-exporter
 go run ./cmd/braiins-pool-exporter
@@ -73,6 +74,30 @@ back to a capped five-second delay otherwise. Scrapes never retry and never
 call Braiins Pool directly. For hardening smoke tests, use synthetic local
 responses for failure, retry, and rate-limit scenarios; do not intentionally
 trigger live rate limits.
+
+## Dashboard validation
+
+The reusable default Grafana dashboard is stored at
+`grafana/braiins-pool-exporter.json`. Keep it portable:
+
+- use UID `braiins-pool-exporter` and title `Braiins Pool Exporter`;
+- use the `DS_PROMETHEUS` datasource variable rather than a hard-coded
+  datasource UID;
+- use portable `job`, `instance`, and optional `worker` variables;
+- query only metrics documented in `docs/METRICS.md` and emitted by the
+  exporter;
+- do not embed worker names, IP addresses, datasource names, tokens, account
+  identifiers, payout destinations, transaction IDs, or live query results.
+
+Run the static dashboard checks with:
+
+```sh
+go test -count=1 ./grafana
+```
+
+These checks parse the dashboard JSON, validate metric references, enforce
+portable variables and datasource usage, reject alert definitions, verify
+approved units, and scan for forbidden public values.
 
 ## Adding API behavior
 
