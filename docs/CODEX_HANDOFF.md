@@ -46,7 +46,20 @@ Milestone 01 is documentation-backed API discovery:
   documentation examples, not raw account responses;
 - redaction and fixture-decoding tests are offline and require no token.
 
-No account, worker, reward, payout, polling, cache, or retry collector exists.
+Milestone 02 implements the first account collector:
+
+- token presence enables a single profile polling loop;
+- account hashrate windows, current balance, and account worker counts are
+  exposed from the cached profile snapshot;
+- API request, last success, and data-age metrics expose bounded operational
+  state;
+- Prometheus scrapes never call Braiins Pool directly;
+- the last-known-good snapshot remains visible during transient failures;
+- readiness requires a first successful account snapshot only when account
+  collection is enabled.
+
+No worker, reward, payout, retry/backoff, dashboard, container, release, or
+deployment work exists.
 
 ## Validation caveats
 
@@ -83,7 +96,8 @@ or installation is explicitly approved.
   wire boundary.
 - Treat documented Unix timestamps as seconds; do not use timestamps as labels.
 - Liveness never depends on the remote API.
-- Revisit readiness after first-poll and staleness semantics are designed.
+- With account polling enabled, readiness requires one accepted account
+  snapshot; later staleness is observable through data age.
 - Never represent historic event dates as current-sample labels.
 - Keep public dashboard logic separate from deployment-specific composite
   dashboards.
@@ -115,6 +129,8 @@ git status --short --branch
 
 Manually start the service, request `/metrics`, `/-/healthy`, `/-/ready`, and
 `/version`, then interrupt it to verify clean shutdown and sanitized logs.
+Without a token, account metrics must be absent. With a safely configured
+token file, account metrics appear only after a successful profile poll.
 
 ## Security constraints
 
@@ -131,8 +147,12 @@ Manually start the service, request `/metrics`, `/-/healthy`, `/-/ready`, and
 
 Live behavior remains unverified for blank tokens, unsupported coins,
 alternate auth header behavior, empty result shapes for workers, pagination
-headers or cursors, rate-limit status codes, nullable profile or worker fields
-beyond the checked response, and the correct daily-hashrate group selector.
+headers or cursors, rate-limit status codes, nullable profile fields beyond
+the checked response, nullable worker fields beyond the checked response, and
+the correct daily-hashrate group selector.
+
+Milestone 03 is the next implementation boundary and should add only the
+verified worker collector after reviewing worker-label privacy and cardinality.
 
 ## Expected future-session report
 

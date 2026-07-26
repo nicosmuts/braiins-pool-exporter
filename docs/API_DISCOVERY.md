@@ -112,6 +112,8 @@ Unknown after live validation:
 
 The profile response includes a top-level `username` and coin-specific profile
 object. `username` is sensitive and must not become a metric label by default.
+Milestone 02 uses only the coin-specific profile object and does not expose the
+username.
 
 Documented BTC fields:
 
@@ -184,6 +186,9 @@ No page-number, cursor, offset, or page-size parameter is documented for the
 verified endpoints, and no pagination metadata was observed in the live
 checkpoint. Date ranges are documented for daily rewards, block rewards, and
 payouts. Daily rewards return the last 90 days by default.
+
+Milestone 02 does not call the unresolved daily-hashrate group endpoint and
+does not use historical reward, block, or payout endpoints.
 
 Historical rewards and payouts remain unsafe as unbounded Prometheus event
 labels. Milestone 04 must prefer current bounded summaries and natural

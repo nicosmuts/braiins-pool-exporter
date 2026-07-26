@@ -183,6 +183,13 @@ func (c *Client) DoJSON(ctx context.Context, req Request, out any) error {
 	return nil
 }
 
+// Profile fetches the authenticated account profile for the selected coin.
+func (c *Client) Profile(ctx context.Context, coin string) (ProfileResponse, error) {
+	var profile ProfileResponse
+	err := c.DoJSON(ctx, Request{Endpoint: EndpointProfile, Coin: coin}, &profile)
+	return profile, err
+}
+
 // StatusError describes a non-2xx response without exposing a response body.
 type StatusError struct {
 	StatusCode  int

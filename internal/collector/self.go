@@ -2,6 +2,7 @@
 package collector
 
 import (
+	"sync"
 	"sync/atomic"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -11,12 +12,14 @@ import (
 
 // SelfMetrics owns exporter build and readiness metrics.
 type SelfMetrics struct {
-	ready atomic.Bool
+	initialized atomic.Bool
+
+	mu             sync.RWMutex
+	accountReadyFn func() bool
 }
 
 // NewRegistry creates an isolated registry with Go, process, and exporter
-// self-metrics. Braiins account metrics are intentionally absent in Milestone
-// 00.
+// self-metrics.
 func NewRegistry(build version.Info) (*prometheus.Registry, *SelfMetrics) {
 	registry := prometheus.NewRegistry()
 	self := &SelfMetrics{}
@@ -35,7 +38,7 @@ func NewRegistry(build version.Info) (*prometheus.Registry, *SelfMetrics) {
 		Name:      "ready",
 		Help:      "Whether the exporter is initialized and ready to serve.",
 	}, func() float64 {
-		if self.ready.Load() {
+		if self.Ready() {
 			return 1
 		}
 		return 0
@@ -52,10 +55,24 @@ func NewRegistry(build version.Info) (*prometheus.Registry, *SelfMetrics) {
 
 // SetReady updates the exporter readiness state.
 func (m *SelfMetrics) SetReady(ready bool) {
-	m.ready.Store(ready)
+	m.initialized.Store(ready)
 }
 
 // Ready reports the exporter readiness state.
 func (m *SelfMetrics) Ready() bool {
-	return m.ready.Load()
+	if !m.initialized.Load() {
+		return false
+	}
+	m.mu.RLock()
+	accountReadyFn := m.accountReadyFn
+	m.mu.RUnlock()
+	return accountReadyFn == nil || accountReadyFn()
+}
+
+// RequireAccountReady makes exporter readiness depend on an accepted account
+// snapshot. Liveness remains independent of Braiins Pool.
+func (m *SelfMetrics) RequireAccountReady(ready func() bool) {
+	m.mu.Lock()
+	m.accountReadyFn = ready
+	m.mu.Unlock()
 }

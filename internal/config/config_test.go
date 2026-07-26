@@ -21,6 +21,9 @@ func TestDefault(t *testing.T) {
 	if cfg.PollInterval != time.Minute {
 		t.Fatalf("PollInterval = %s, want 1m", cfg.PollInterval)
 	}
+	if cfg.Coin != "btc" {
+		t.Fatalf("Coin = %q, want btc", cfg.Coin)
+	}
 }
 
 func TestLoadRejectsInvalidConfiguration(t *testing.T) {
@@ -45,6 +48,9 @@ func TestLoadRejectsInvalidConfiguration(t *testing.T) {
 		}},
 		{name: "invalid poll interval", env: map[string]string{
 			"BRAIINS_POOL_POLL_INTERVAL": "soon",
+		}},
+		{name: "unverified coin", env: map[string]string{
+			"BRAIINS_POOL_COIN": "bch",
 		}},
 	}
 

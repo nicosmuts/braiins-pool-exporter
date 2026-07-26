@@ -1,12 +1,12 @@
 # Examples
 
-Milestone 00 needs no token:
+Run without a token for self-metrics only:
 
 ```sh
 go run ./cmd/braiins-pool-exporter
 ```
 
-For future authenticated polling, prefer a mounted file:
+For authenticated account polling, prefer a mounted file:
 
 ```sh
 export BRAIINS_POOL_TOKEN_FILE=/run/secrets/braiins-pool-token
@@ -22,8 +22,8 @@ go run ./cmd/braiins-pool-exporter
 ```
 
 Never put a real token in this repository, shell history, a command-line flag,
-an image, or an example file. The token is optional until API integration
-begins.
+an image, or an example file. With a token configured, account metrics appear
+after the first successful profile poll.
 
 Production deployment is operator-managed. Future example configuration must
 use placeholders, `example.com` domains, or RFC 5737 documentation addresses

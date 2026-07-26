@@ -5,8 +5,9 @@ data from the official Braiins Pool API.
 
 > [!IMPORTANT]
 > This project is under active development. No stable release exists, and the
-> Braiins API contract is documented for Milestone 01, but API-derived
-> collectors have not started. The running exporter exposes only self-metrics.
+> Milestone 02 implements the first account-level collector. Worker, reward,
+> payout, dashboard, container, release, and deployment work remain future
+> milestones.
 
 This independent exporter is designed for Braiins Pool users and keeps
 environment-specific addresses, worker mappings, credentials, and dashboards
@@ -14,19 +15,20 @@ outside the public project.
 
 ## Current scope
 
-Milestone 00 provides:
+The exporter currently provides:
 
 - a small Go service using `net/http` and `log/slog`;
 - Prometheus, Go runtime, process, build, and readiness metrics;
 - health, readiness, and sanitized version endpoints;
 - environment- or file-based secret loading with redaction safeguards;
+- optional Braiins account profile polling when a token is configured;
+- verified account hashrate, balance, worker-count, request, and freshness
+  metrics;
 - graceful shutdown and unit tests.
 
 Milestone 01 records the documented official API contract in
-[docs/API_DISCOVERY.md](docs/API_DISCOVERY.md). Future milestones will use
-that contract before implementing account, worker, reward, or payout metrics.
-Proposed metrics are documented in [docs/METRICS.md](docs/METRICS.md), but
-they are not implemented yet.
+[docs/API_DISCOVERY.md](docs/API_DISCOVERY.md). Implemented and deferred
+metrics are documented in [docs/METRICS.md](docs/METRICS.md).
 
 ## Quick start
 
@@ -40,8 +42,8 @@ go mod download
 go run ./cmd/braiins-pool-exporter
 ```
 
-The exporter listens on `:9108` by default. No Braiins token or external
-network access is needed in Milestone 00.
+The exporter listens on `:9108` by default. Without a Braiins token it exposes
+only self-metrics and makes no external network requests.
 
 ```sh
 curl http://localhost:9108/-/healthy
@@ -74,13 +76,13 @@ Command-line flags:
 | `--log.format` | `text` | `text` or `json` |
 | `--config.file` | empty | Reserved until a safe format is defined |
 
-The future Braiins client configuration contract is:
+Account collection is enabled by setting exactly one Braiins token source:
 
 | Environment variable | Purpose |
 |---|---|
 | `BRAIINS_POOL_TOKEN` | Token value |
 | `BRAIINS_POOL_TOKEN_FILE` | Path to a mounted token file |
-| `BRAIINS_POOL_COIN` | Coin selector, pending API discovery |
+| `BRAIINS_POOL_COIN` | Coin selector; only `btc` is currently verified and accepted |
 | `BRAIINS_POOL_API_BASE_URL` | Override for tests or compatible endpoints |
 | `BRAIINS_POOL_POLL_INTERVAL` | Poll interval, default `1m` |
 | `BRAIINS_POOL_TIMEOUT` | HTTP timeout, default `10s` |
@@ -92,6 +94,10 @@ labels and must never be logged.
 
 See [examples/README.md](examples/README.md) and
 [docs/SECURITY.md](docs/SECURITY.md) for safe usage.
+
+When account collection is enabled, readiness requires the first successful
+profile poll. Later transient failures keep the last-known-good account
+snapshot visible while `braiins_pool_data_age_seconds` increases.
 
 ## Development
 

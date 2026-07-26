@@ -21,19 +21,22 @@ flags and environment
              ---> /version       (sanitized build metadata)
 ```
 
-The foundation makes no Braiins network request. `main` wires dependencies and
-signals; behavior lives in internal packages.
+When no token is configured, the exporter makes no Braiins network request.
+`main` wires dependencies and signals; behavior lives in internal packages.
 
-## Planned polling flow
+## Account polling flow
 
-After API discovery, a bounded poll loop will use an injected `net/http` client
-with timeouts and contexts. Verified wire responses will be normalized into an
-immutable snapshot. Collectors will expose that snapshot while self-metrics
-describe API errors, last success, and data age.
+Milestone 02 adds a bounded account profile poll loop when exactly one token
+source is configured. It uses the `internal/braiins` client with an explicit
+HTTP timeout and context cancellation. Verified profile responses are
+normalized into an immutable last-known-good snapshot owned by
+`internal/collector`.
 
-A last-known-good snapshot may remain available during transient failures, but
-staleness will be explicit. Polling, cache replacement, and collection must be
-race-safe. The API client will not perform work during a Prometheus scrape.
+Prometheus collection never makes Braiins API requests. Scrapes expose the
+cached snapshot, account API request counters, last successful profile poll
+timestamp, and data age. A transient failure leaves the last-known-good account
+metrics visible, with staleness increasing. Before the first successful account
+poll, account data metrics are omitted.
 
 ## Milestone 01 API boundary
 
@@ -60,8 +63,8 @@ ignore unknown JSON fields. Optional or nullable behavior that is not yet
 documented remains an explicit gap until live validation proves it.
 
 Rate-limit policy: the documented safe rate is about one request per five
-seconds. Milestone 02 should poll conservatively; Milestone 05 owns retry and
-backoff design.
+seconds. Milestone 02 polls one profile endpoint at the configured interval,
+defaulting to one minute. Milestone 05 owns retry and backoff design.
 
 Fixture policy: committed fixtures are synthetic or field-by-field sanitized,
 with provenance documented under `testdata/braiins/`. Raw private API responses
@@ -69,10 +72,12 @@ must never be committed.
 
 ## Readiness
 
-In Milestone 00, ready means local configuration is valid, the registry is
-constructed, and the listener is open. Liveness never depends on Braiins Pool.
-API discovery and hardening milestones must decide whether readiness requires
-an initial successful poll and how stale cached data affects it.
+Without account polling, ready means local configuration is valid, the registry
+is constructed, and the listener is open. With account polling enabled, ready
+also requires at least one accepted account profile snapshot. Transient Braiins
+Pool failures after a successful poll do not flip readiness by themselves; data
+age makes stale last-known-good data observable. Liveness never depends on
+Braiins Pool.
 
 ## Dependency direction
 

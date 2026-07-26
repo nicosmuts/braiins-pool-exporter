@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/nicosmuts/braiins-pool-exporter/internal/braiins"
 	"github.com/nicosmuts/braiins-pool-exporter/internal/collector"
 	"github.com/nicosmuts/braiins-pool-exporter/internal/config"
 	"github.com/nicosmuts/braiins-pool-exporter/internal/server"
@@ -40,6 +41,27 @@ func run(args []string) error {
 
 	build := version.Current()
 	registry, selfMetrics := collector.NewRegistry(build)
+	var accountMetrics *collector.AccountMetrics
+	if cfg.Token != "" {
+		client, err := braiins.NewClient(braiins.Config{
+			BaseURL: cfg.APIBaseURL,
+			Token:   braiins.Secret(cfg.Token),
+			Timeout: cfg.Timeout,
+		})
+		if err != nil {
+			return err
+		}
+		accountMetrics, err = collector.NewAccountMetrics(collector.AccountOptions{
+			Client:       client,
+			Coin:         cfg.Coin,
+			PollInterval: cfg.PollInterval,
+		})
+		if err != nil {
+			return err
+		}
+		collector.RegisterAccountMetrics(registry, accountMetrics)
+		selfMetrics.RequireAccountReady(accountMetrics.Ready)
+	}
 	app := server.New(cfg.ListenAddress, cfg.TelemetryPath, registry, selfMetrics, build)
 	listener, err := app.Listen()
 	if err != nil {
@@ -58,6 +80,11 @@ func run(args []string) error {
 	go func() {
 		serveErr <- app.Serve(listener)
 	}()
+	pollCtx, stopPolling := context.WithCancel(context.Background())
+	defer stopPolling()
+	if accountMetrics != nil {
+		go accountMetrics.Run(pollCtx, cfg.PollInterval)
+	}
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
@@ -74,6 +101,7 @@ func run(args []string) error {
 	}
 
 	selfMetrics.SetReady(false)
+	stopPolling()
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
 	if err := app.Shutdown(ctx); err != nil && !errors.Is(err, context.Canceled) {

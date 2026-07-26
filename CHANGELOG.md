@@ -10,6 +10,9 @@ and this project intends to follow
 
 ### Added
 
+- Milestone 02 account collector with profile polling, cached account
+  hashrate/balance/worker metrics, API request counters, freshness metrics,
+  and account-aware readiness.
 - Milestone 01 Braiins Pool API discovery documentation, sanitized fixtures,
   minimal API client boundary, precision-preserving wire types, and redaction
   tests.

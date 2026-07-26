@@ -42,7 +42,13 @@ go run ./cmd/braiins-pool-exporter --web.listen-address=:9108
 
 Request `/metrics`, `/-/healthy`, `/-/ready`, and `/version`, then interrupt
 the process. Confirm a clean exit and that logs contain no environment values
-or secrets.
+or secrets. Account metrics should be absent in this mode.
+
+For local account validation, prefer a temporary token file and set
+`BRAIINS_POOL_TOKEN_FILE` only in the shell running the exporter. Do not pass a
+token as a command argument. With a valid token, `/metrics` should expose the
+Milestone 02 account metrics after the first successful profile poll; `/-/ready`
+returns not ready until that first snapshot is accepted.
 
 ## Adding API behavior
 
@@ -51,10 +57,11 @@ Do not infer the contract from memory. Use official documentation in Milestone
 encoding, and finalize metric semantics before adding collectors.
 
 Milestone 01 records the current API discovery matrix in
-`docs/API_DISCOVERY.md`. To perform live read-only validation in a future
-session, export exactly one of `BRAIINS_POOL_TOKEN` or
-`BRAIINS_POOL_TOKEN_FILE` in the shell running the validation. Do not pass a
-token as a command argument and do not copy raw responses into the repository.
+`docs/API_DISCOVERY.md`. Milestone 02 implements only the profile-backed
+account collector. To perform live read-only validation in a future session,
+export exactly one of `BRAIINS_POOL_TOKEN` or `BRAIINS_POOL_TOKEN_FILE` in the
+shell running the validation. Do not pass a token as a command argument and do
+not copy raw responses into the repository.
 
 ## Build metadata
 

@@ -24,18 +24,32 @@ must be reviewed for bounded fleet behavior and privacy before release.
 
 The standard Go runtime and process collectors are also registered.
 
-## Proposed API-derived contract from Milestone 01
+## Implemented in Milestone 02
+
+Account collection is enabled only when a Braiins token is configured through
+`BRAIINS_POOL_TOKEN` or `BRAIINS_POOL_TOKEN_FILE`. Polling runs outside
+Prometheus scrapes and scrapes read the latest accepted profile snapshot.
+After a transient failure, the last-known-good account snapshot remains exposed
+and staleness is visible through `braiins_pool_data_age_seconds`. Before the
+first successful account poll, account data metrics are omitted.
+
+| Metric | Type | Labels | Source | Unit/conversion | Behavior |
+|---|---|---|---|---|---|
+| `braiins_pool_account_hashrate_ghs` | gauge | `window` | profile: `hash_rate_5m`, `hash_rate_60m`, `hash_rate_24h`, `hash_rate_yesterday` | source `Gh/s`, export as `Gh/s` | omit missing windows; stale snapshot remains explicit through freshness metric |
+| `braiins_pool_account_balance_btc` | gauge | none | profile: `current_balance` | decimal BTC string parsed at exposition boundary | omit if absent; never label by account |
+| `braiins_pool_account_workers` | gauge | `state` | profile: `ok_workers`, `low_workers`, `off_workers`, `dis_workers` | worker count | states map to `ok`, `low`, `off`, `dis` |
+| `braiins_pool_api_requests_total` | counter | `endpoint`, `result` | exporter HTTP client | request count | endpoint is `profile`; result is one of `success`, `unauthorized`, `forbidden`, `http_error`, `timeout`, `canceled`, `malformed`, or `error` |
+| `braiins_pool_api_last_success_timestamp_seconds` | gauge | `endpoint` | exporter polling state | Unix seconds | emitted only after a successful profile poll |
+| `braiins_pool_data_age_seconds` | gauge | `endpoint` | exporter polling state | seconds | age of latest accepted profile snapshot |
+
+## Deferred API-derived contract
 
 These metrics are proposed from official documentation and a narrow read-only
-live structural checkpoint, not implemented yet. Metrics marked approved are
-approved for the next implementation milestone from the observed contract.
+live structural checkpoint, but are not implemented yet unless noted above.
 
 | Metric | Type | Labels | Source | Unit/conversion | Behavior | Milestone | Status |
 |---|---|---|---|---|---|---|---|
-| `braiins_pool_account_hashrate_ghs` | gauge | `window` | profile: `hash_rate_5m`, `hash_rate_60m`, `hash_rate_24h`, `hash_rate_yesterday` | source `Gh/s`, export as `Gh/s` | omit missing windows; stale snapshot remains explicit through freshness metric | 02 | approved |
-| `braiins_pool_account_balance_btc` | gauge | none | profile: `current_balance` | decimal BTC string | omit if absent; never label by account | 02 | approved |
 | `braiins_pool_account_reward_btc` | gauge | `period` | profile: `today_reward`, `estimated_reward`, `all_time_reward` | decimal BTC string | `estimated` must be clearly named as estimated in help text | 02 | deferred pending naming review |
-| `braiins_pool_account_workers` | gauge | `state` | profile: `ok_workers`, `low_workers`, `off_workers`, `dis_workers` | worker count | states map to `ok`, `low`, `off`, `dis` | 02 | approved |
 | `braiins_pool_account_shares` | gauge | `window` | profile: `shares_5m`, `shares_60m`, `shares_24h`, `shares_yesterday` | rolling-window shares | not a counter because documentation describes active shares in windows | 02 | deferred pending usefulness review |
 | `braiins_pool_worker_state` | gauge | `worker`, `state` | workers: `state` | one-hot state value | worker label requires explicit privacy/cardinality approval | 03 | deferred |
 | `braiins_pool_worker_hashrate_ghs` | gauge | `worker`, `window` | workers: `hash_rate_scoring`, `hash_rate_5m`, `hash_rate_60m`, `hash_rate_24h` | source `Gh/s`, export as `Gh/s` | omit missing windows; stale snapshot explicit through freshness metric | 03 | deferred |
@@ -44,9 +58,6 @@ approved for the next implementation milestone from the observed contract.
 | `braiins_pool_reward_daily_btc` | gauge | `component` | daily rewards: reward amount fields | decimal BTC string | expose bounded summaries only; no date labels | 04 | deferred |
 | `braiins_pool_payout_amount_sats` | gauge | `rail`, `status` | payouts: `amount_sats` | satoshis | aggregate by rail/status; never label by destination, tx ID, invoice, preimage, or account name | 04 | deferred |
 | `braiins_pool_payout_fee_sats` | gauge | `rail`, `status` | payouts: `fee_sats` | satoshis | aggregate by rail/status | 04 | deferred |
-| `braiins_pool_api_requests_total` | counter | `endpoint`, `result` | exporter HTTP client | request count | endpoint is a bounded enum; result is a bounded success/error category | 02 | approved |
-| `braiins_pool_api_last_success_timestamp_seconds` | gauge | `endpoint` | exporter polling state | Unix seconds | set only after a successful poll | 02 | approved |
-| `braiins_pool_data_age_seconds` | gauge | `endpoint` | exporter polling state | seconds | age of latest accepted snapshot | 02 | approved |
 
 Rejected label dimensions:
 

@@ -29,10 +29,16 @@ responsibility.
 - Never support a token command-line flag.
 - Never format the secret-bearing configuration directly in logs.
 - Use a redacting secret type and an explicit safe summary.
-- Give future HTTP clients explicit timeouts and context cancellation.
+- Give HTTP clients explicit timeouts and context cancellation.
 - Sanitize errors and URLs; do not log response bodies by default.
 - Keep fixtures synthetic or rigorously sanitized.
 - Keep labels bounded and free of private financial identifiers.
+
+Milestone 02 account collection exposes only account-level metrics approved in
+`docs/METRICS.md`. It does not expose usernames, account identifiers, worker
+names, payout addresses, transaction IDs, raw endpoint URLs, authorization
+headers, or arbitrary error strings. The API request result label is a bounded
+category enum.
 
 ## Required future tests
 

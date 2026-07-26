@@ -16,6 +16,7 @@ import (
 const (
 	defaultListenAddress = ":9108"
 	defaultTelemetryPath = "/metrics"
+	defaultCoin          = "btc"
 	defaultPollInterval  = time.Minute
 	defaultTimeout       = 10 * time.Second
 )
@@ -71,6 +72,7 @@ func Default() Config {
 		TelemetryPath: defaultTelemetryPath,
 		LogLevel:      "info",
 		LogFormat:     "text",
+		Coin:          defaultCoin,
 		PollInterval:  defaultPollInterval,
 		Timeout:       defaultTimeout,
 	}
@@ -126,7 +128,9 @@ func Load(args []string, env Environment) (Config, error) {
 		cfg.Token = Secret(value)
 	}
 
-	cfg.Coin = envValue(env.LookupEnv, "BRAIINS_POOL_COIN")
+	if coin := envValue(env.LookupEnv, "BRAIINS_POOL_COIN"); coin != "" {
+		cfg.Coin = strings.ToLower(coin)
+	}
 	cfg.APIBaseURL = envValue(env.LookupEnv, "BRAIINS_POOL_API_BASE_URL")
 
 	var err error
@@ -172,6 +176,9 @@ func (c Config) Validate() error {
 	}
 	if c.Timeout <= 0 {
 		return errors.New("Braiins request timeout must be positive")
+	}
+	if strings.ToLower(strings.TrimSpace(c.Coin)) != "btc" {
+		return errors.New("Braiins coin selector must be btc")
 	}
 	if c.APIBaseURL != "" {
 		parsed, err := url.Parse(c.APIBaseURL)
