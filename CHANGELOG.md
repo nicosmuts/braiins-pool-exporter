@@ -8,6 +8,13 @@ and this project intends to follow
 
 ## [Unreleased]
 
+### Added
+
+- Optional Docker Compose `miner` profile for the upstream
+  `avalonhome-prometheus-exporter` image, with local AvalonMiner defaults,
+  separate miner-mode Prometheus scrape configuration, and documentation of
+  known AvalonMiner 1047 metric gaps before Issue #11 dashboard work.
+
 ## [0.0.1] - 2026-07-27
 
 Initial public development release. This release is suitable for public review,

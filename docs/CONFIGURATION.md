@@ -84,6 +84,36 @@ BRAIINS_POOL_TOKEN_FILE=/run/secrets/braiins_pool_token
 Files under `secrets/` are ignored except for `secrets/README.md` and
 `secrets/.gitkeep`.
 
+## Optional Avalon miner exporter profile
+
+Avalon miner metrics are optional and are not part of the default stack. Enable
+the local miner profile with:
+
+```sh
+docker compose -f compose.yaml -f compose.miner.yaml --profile miner up -d
+```
+
+The profile uses the upstream
+`ghcr.io/brav0charlie/avalonhome-prometheus-exporter:v0.3.2` image and its
+actual environment variables:
+
+| Setting | Default | Description |
+|---|---:|---|
+| `AVALON_IPS` | `10.0.0.101,10.0.0.102` | Comma-separated local miner API targets. |
+| `AVALON_PORT` | `4028` | CGMiner TCP API port. |
+| `UPDATE_INTERVAL` | `15` | Avalon exporter poll interval in seconds. |
+| `EXPORTER_PORT` | `9100` | Avalon exporter HTTP port inside the container. |
+| `EXPORT_CHIP_METRICS` | `false` | Enable high-cardinality per-chip telemetry. Keep disabled by default. |
+| `MINER_TIMEOUT` | `5.0` | Per-miner TCP timeout in seconds. |
+| `ENABLE_DEBUG_ENDPOINT` | `false` | Enable upstream `/debug`; disabled by default for privacy. |
+| `AVALON_LOG_LEVEL` | `INFO` | Log level passed to upstream as `LOG_LEVEL`. |
+
+The two default miner IPs are local development defaults only. Override them in
+operator-managed configuration for other environments. The CGMiner API must
+permit read-only queries from the Docker host or bridge-networked container.
+Do not expose the Avalon exporter or Prometheus publicly without network
+controls. See `docs/AVALON_EXPORTER.md` for the 1047 compatibility review.
+
 ## API token guidance
 
 Create a Braiins Pool API token from the Braiins Pool account settings and use

@@ -71,6 +71,19 @@ Stop and remove local volumes with:
 docker compose down -v
 ```
 
+For optional local Avalon miner validation:
+
+```sh
+docker compose -f compose.yaml -f compose.miner.yaml --profile miner config
+docker compose -f compose.yaml -f compose.miner.yaml --profile miner up -d
+docker compose -f compose.yaml -f compose.miner.yaml --profile miner ps
+docker compose -f compose.yaml -f compose.miner.yaml --profile miner down -v
+```
+
+The miner profile must not be required for default exporter development. It is
+only for local device-side metrics and Issue #11 preparation. The default
+Braiins Pool dashboard is not modified by the miner profile.
+
 ## Container image
 
 The production image is built from `Dockerfile`.

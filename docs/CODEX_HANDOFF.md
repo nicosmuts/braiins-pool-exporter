@@ -169,8 +169,25 @@ exporter/Prometheus/Grafana stack; CI, race testing, Dependabot, SBOM, and
 provenance; and the warning that interfaces and metrics may still change before
 `v0.1.0`.
 
-No Kubernetes, Helm, production deployment, release tag, or stable production
-release exists.
+No Kubernetes, Helm, production deployment, or stable production release
+exists. The initial public development release tag `v0.0.1` exists.
+
+After `v0.0.1`, an optional Avalon miner exporter Compose profile was prepared
+for Issue #11. It uses upstream
+`ghcr.io/brav0charlie/avalonhome-prometheus-exporter:v0.3.2` as a pinned,
+optional `miner` profile service named `avalonhome-prometheus-exporter`.
+Default `docker compose up -d` remains limited to Braiins Pool Exporter,
+Prometheus, and Grafana. Miner mode uses
+`docker compose -f compose.yaml -f compose.miner.yaml --profile miner up -d`,
+local defaults `AVALON_IPS=10.0.0.101,10.0.0.102` and `AVALON_PORT=4028`, and
+the separate `prometheus/prometheus.miner.yml` scrape config.
+
+Live read-only validation showed upstream `v0.3.2` is suitable as a baseline
+local integration for AvalonMiner 1047 devices, but not complete 1047 support.
+Known gaps include missing `Fan2`, missing summary hashrate windows, missing
+current `Temp`, missing parsed `SYSTEMSTATU`/hash-board count, and board-1
+chip arrays (`PVT_T1`, `PVT_V1`, `MW1`). Keep Issue #11 dashboard work
+separate until these metric semantics are reviewed.
 
 ## Validation caveats
 

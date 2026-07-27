@@ -147,6 +147,39 @@ Grafana is provisioned automatically with the Prometheus datasource and the
 `Braiins Pool Exporter` dashboard. For local development, anonymous admin
 access is enabled in Compose.
 
+### Optional Avalon miner metrics
+
+The default stack does not start a miner exporter and does not add an Avalon
+Prometheus target. For local miner validation, enable the optional `miner`
+profile with the Compose override:
+
+```sh
+docker compose -f compose.yaml -f compose.miner.yaml --profile miner up -d
+```
+
+That profile starts
+[`avalonhome-prometheus-exporter`](https://github.com/brav0charlie/avalonhome-prometheus-exporter)
+and configures Prometheus to scrape it as
+`job="avalonhome-prometheus-exporter"` over the Compose network. The local
+defaults are:
+
+```text
+AVALON_IPS=10.0.0.101,10.0.0.102
+AVALON_PORT=4028
+```
+
+The miner IPs are passed only to the Avalon exporter. Prometheus scrapes the
+exporter service name, not the miners directly. Operators must override the
+miner list outside this repository for other environments. The CGMiner TCP API
+must permit read-only queries from the Docker host or bridge-networked
+containers.
+
+Extended chip metrics remain disabled by default with
+`EXPORT_CHIP_METRICS=false` because they can create high-cardinality series.
+Do not expose miner exporter endpoints publicly without network controls:
+device-side metrics can reveal operational details such as local miner
+addresses, availability, temperatures, fan behavior, shares, and errors.
+
 ### Stop the stack
 
 ```sh
@@ -224,6 +257,14 @@ Prometheus uses [`prometheus/prometheus.yml`](prometheus/prometheus.yml) to
 scrape the exporter over the Compose network. Grafana provisions the
 Prometheus datasource and dashboard from `grafana/provisioning/`.
 
+An optional miner profile is available through
+[`compose.miner.yaml`](compose.miner.yaml). It adds
+`avalonhome-prometheus-exporter` and switches Prometheus to
+[`prometheus/prometheus.miner.yml`](prometheus/prometheus.miner.yml), which
+adds the `avalonhome-prometheus-exporter` scrape job. The existing default
+Braiins Pool dashboard is unchanged; Issue #11 will later design a separate
+production operations view that combines pool-side and device-side metrics.
+
 Release publishing is tag-gated. Ordinary pushes and pull requests run
 validation and Docker build checks but do not publish images. Tags matching
 `v*.*.*` build and publish multi-architecture images to:
@@ -250,6 +291,7 @@ contract as the source of truth.
 - [Security design](docs/SECURITY.md)
 - [Development](docs/DEVELOPMENT.md)
 - [Configuration](docs/CONFIGURATION.md)
+- [Optional Avalon miner exporter](docs/AVALON_EXPORTER.md)
 - [Release process](docs/RELEASE.md)
 - [Grafana dashboard](grafana/README.md)
 - [Contributing](CONTRIBUTING.md)
@@ -270,7 +312,8 @@ Completed:
 
 Planned:
 
-- First stable release.
+- Production integration.
+- Production operations dashboard.
 
 ## Contributing
 

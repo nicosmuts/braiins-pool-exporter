@@ -103,6 +103,27 @@ Focused security review findings:
 - Deferred: final release-contents review still belongs to the first stable
   release milestone before any tag is created.
 
+Optional Avalon miner telemetry is local-only support for device-side metrics.
+Device telemetry can reveal operational details including miner addresses,
+availability, temperatures, fan behavior, shares, rejections, pool URLs, and
+error state.
+
+Security expectations:
+
+- Keep the default stack free of miner services and failed miner scrape
+  targets.
+- Do not expose the Avalon exporter, Prometheus, or Grafana publicly without
+  network controls.
+- Keep `ENABLE_DEBUG_ENDPOINT=false` unless debugging in a trusted local
+  environment.
+- Keep `EXPORT_CHIP_METRICS=false` by default to avoid high-cardinality
+  per-chip series.
+- Do not commit raw CGMiner payloads, DNA values, MAC addresses, pool URLs,
+  worker identities, or private miner responses.
+- Use only read-only CGMiner commands for validation. State-changing pool,
+  voltage, frequency, work-mode, fan, firmware, restart, or configuration
+  commands are out of scope.
+
 ## Required future tests
 
 Milestone 01 adds token-redaction tests covering request construction, unsafe
