@@ -179,8 +179,11 @@ snapshot. The collector does not call the unresolved daily-hashrate endpoint.
 Daily rewards use date filters with `YYYY-MM-DD` strings and return the last
 90 days by default. Reward amounts are shown as strings, while the field table
 describes them as numbers; the wire type therefore preserves either encoding
-without converting to float. The live checkpoint also observed `shares` as a
-number and `share_prices` as an array in daily reward entries.
+without converting to float. The initial live checkpoint also observed `shares`
+as a number and `share_prices` as an array in daily reward entries. A later
+2026-07-27 bounded validation observed `share_prices` array entries as objects
+with `from_ts`, `to_ts`, and `share_price`; the exporter treats share-price
+details as decode-only wire data and does not export them as labels or metrics.
 
 Payouts are separated into `onchain` and `lightning` arrays. Sensitive payout
 fields include `destination`, `tx_id`, `invoice`, and `preimage`; these must

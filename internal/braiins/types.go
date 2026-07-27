@@ -114,15 +114,36 @@ type RewardsResponse struct {
 }
 
 type DailyReward struct {
-	Date            int64     `json:"date"`
-	TotalReward     Decimal   `json:"total_reward"`
-	MiningReward    Decimal   `json:"mining_reward"`
-	BOSPlusReward   Decimal   `json:"bos_plus_reward"`
-	ReferralBonus   Decimal   `json:"referral_bonus"`
-	ReferralReward  Decimal   `json:"referral_reward"`
-	Shares          Decimal   `json:"shares"`
-	SharePrices     []Decimal `json:"share_prices"`
-	CalculationDate int64     `json:"calculation_date"`
+	Date            int64        `json:"date"`
+	TotalReward     Decimal      `json:"total_reward"`
+	MiningReward    Decimal      `json:"mining_reward"`
+	BOSPlusReward   Decimal      `json:"bos_plus_reward"`
+	ReferralBonus   Decimal      `json:"referral_bonus"`
+	ReferralReward  Decimal      `json:"referral_reward"`
+	Shares          Decimal      `json:"shares"`
+	SharePrices     []SharePrice `json:"share_prices"`
+	CalculationDate int64        `json:"calculation_date"`
+}
+
+type SharePrice struct {
+	FromTS     int64   `json:"from_ts"`
+	ToTS       int64   `json:"to_ts"`
+	SharePrice Decimal `json:"share_price"`
+}
+
+func (p *SharePrice) UnmarshalJSON(data []byte) error {
+	var scalar Decimal
+	if err := json.Unmarshal(data, &scalar); err == nil {
+		p.SharePrice = scalar
+		return nil
+	}
+	type sharePrice SharePrice
+	var object sharePrice
+	if err := json.Unmarshal(data, &object); err != nil {
+		return err
+	}
+	*p = SharePrice(object)
+	return nil
 }
 
 type DailyHashrate struct {

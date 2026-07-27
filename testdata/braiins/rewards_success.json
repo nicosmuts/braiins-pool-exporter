@@ -10,8 +10,16 @@
         "referral_reward": "0.00000000",
         "shares": 42,
         "share_prices": [
-          "0.00000001",
-          "0.00000002"
+          {
+            "from_ts": 1733097600,
+            "to_ts": 1733130000,
+            "share_price": "0.00000001"
+          },
+          {
+            "from_ts": 1733130000,
+            "to_ts": 1733191200,
+            "share_price": "0.00000002"
+          }
         ],
         "calculation_date": 1733191200
       }

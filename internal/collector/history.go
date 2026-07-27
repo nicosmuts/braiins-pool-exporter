@@ -409,7 +409,11 @@ func rewardDedupKey(reward braiins.DailyReward) string {
 		reward.Shares.String(),
 	}
 	for _, price := range reward.SharePrices {
-		parts = append(parts, price.String())
+		parts = append(parts,
+			fmt.Sprintf("%d", price.FromTS),
+			fmt.Sprintf("%d", price.ToTS),
+			price.SharePrice.String(),
+		)
 	}
 	return strings.Join(parts, "\x00")
 }

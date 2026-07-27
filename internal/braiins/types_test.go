@@ -81,4 +81,20 @@ func TestRewardLiveConfirmedFieldsFromFixture(t *testing.T) {
 	if len(rewards[0].SharePrices) == 0 {
 		t.Fatal("SharePrices is empty")
 	}
+	if rewards[0].SharePrices[0].SharePrice == "" {
+		t.Fatal("SharePrice is empty")
+	}
+}
+
+func TestRewardSharePricesDecodeLegacyScalarShape(t *testing.T) {
+	t.Parallel()
+
+	var reward DailyReward
+	data := []byte(`{"share_prices":["0.00000001"]}`)
+	if err := json.Unmarshal(data, &reward); err != nil {
+		t.Fatalf("decode legacy scalar share_prices: %v", err)
+	}
+	if len(reward.SharePrices) != 1 || reward.SharePrices[0].SharePrice != "0.00000001" {
+		t.Fatalf("SharePrices = %#v", reward.SharePrices)
+	}
 }
