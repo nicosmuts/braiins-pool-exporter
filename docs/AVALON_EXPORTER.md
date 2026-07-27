@@ -155,6 +155,12 @@ published because they are operational telemetry.
 
 ## Issue #11 handoff
 
+The standalone Avalon dashboard lives at
+`grafana/dashboards/avalon-dashboard.json` with UID
+`avalon-miner-exporter` and title `Avalon Miner Exporter`. It visualizes only
+`avalonhome-prometheus-exporter` metrics and is intended to validate device-side
+metric usefulness before Issue #11 combines pool-side and miner-side views.
+
 Issue #11 should later build the production operations dashboard from already
 available metrics. It should combine:
 

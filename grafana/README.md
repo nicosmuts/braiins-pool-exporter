@@ -141,3 +141,25 @@ filters, counter handling, alert absence, and forbidden public values.
 Rendered review for Milestone 06 used a temporary local Grafana container and
 synthetic/no-live-data import only. It did not connect to production Grafana
 or use private Braiins data.
+
+## Optional Avalon dashboard
+
+The standalone Avalon dashboard is stored at
+[`dashboards/avalon-dashboard.json`](dashboards/avalon-dashboard.json).
+
+- UID: `avalon-miner-exporter`
+- Title: `Avalon Miner Exporter`
+- Datasource variable: `DS_PROMETHEUS`
+- Runtime filters: `job` and `instance`
+
+This dashboard uses only metrics emitted by
+`avalonhome-prometheus-exporter`. It is provisioned by the existing Grafana file
+provider when the `grafana/` directory is mounted. It does not modify the
+default Braiins Pool Exporter dashboard and is not the combined production
+operations dashboard tracked by Issue #11.
+
+Some panels intentionally show `No data` with upstream `v0.3.2`, including
+Fan2, current temperature, board metrics, and individual chip telemetry when
+`EXPORT_CHIP_METRICS=false`. These panels validate metric usefulness as
+upstream support evolves without filling absent optional series with false
+zeros.
