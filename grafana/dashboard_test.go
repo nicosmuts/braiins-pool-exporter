@@ -41,7 +41,9 @@ var approvedUnits = map[string]struct{}{
 	"s":             {},
 	"short":         {},
 	"suffix: BTC":   {},
+	"suffix: EH/s":  {},
 	"suffix:Gh/s":   {},
+	"suffix: TH/s":  {},
 	"suffix: sats":  {},
 }
 
@@ -106,8 +108,8 @@ func TestDashboardIdentityAndVariables(t *testing.T) {
 	if dash.Schema != 39 {
 		t.Fatalf("schemaVersion = %d, want 39", dash.Schema)
 	}
-	if dash.Refresh != "1m" {
-		t.Fatalf("refresh = %q, want 1m", dash.Refresh)
+	if dash.Refresh != "10s" {
+		t.Fatalf("refresh = %q, want 10s", dash.Refresh)
 	}
 
 	vars := map[string]variable{}
@@ -269,9 +271,38 @@ func TestDashboardContainsCanonicalPoolStatisticsSection(t *testing.T) {
 	if _, ok := titles["Pool Statistics"]; !ok {
 		t.Fatal("missing Pool Statistics row")
 	}
-	for _, title := range []string{"Pool hashrate", "Pool active workers", "Pool stats freshness"} {
+	for _, title := range []string{"Pool hashrate (EH/s)", "Pool active workers", "Pool stats freshness"} {
 		if _, ok := titles[title]; !ok {
 			t.Fatalf("Pool Statistics section missing panel %q", title)
+		}
+	}
+}
+
+func TestDashboardPresentationConversions(t *testing.T) {
+	raw, err := os.ReadFile(dashboardPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(raw)
+
+	for _, want := range []string{
+		`braiins_pool_account_hashrate_ghs{job=~\"$job\", instance=~\"$instance\"}) / 1000`,
+		`braiins_pool_worker_hashrate_ghs{job=~\"$job\", instance=~\"$instance\", worker=~\"$worker\"}) / 1000`,
+		`braiins_pool_worker_hashrate_ghs{job=~\"$job\", instance=~\"$instance\", worker=~\"$worker\", window=\"5m\"}) / 1000`,
+		`braiins_pool_worker_hashrate_ghs{job=~\"$job\", instance=~\"$instance\", worker=~\"$worker\", window=\"60m\"}) / 1000`,
+		`braiins_pool_worker_hashrate_ghs{job=~\"$job\", instance=~\"$instance\", worker=~\"$worker\", window=\"24h\"}) / 1000`,
+		`braiins_pool_hashrate_ghs{job=~\"$job\", instance=~\"$instance\"}) / 1e9`,
+		`braiins_pool_stats_update_timestamp_seconds{job=~\"$job\", instance=~\"$instance\"}) * 1000`,
+		`braiins_pool_api_last_success_timestamp_seconds{job=~\"$job\", instance=~\"$instance\"}) * 1000`,
+		`or (0 * sum by (endpoint) (rate(braiins_pool_api_requests_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])))`,
+	} {
+		if !strings.Contains(text, want) {
+			t.Fatalf("dashboard missing expected presentation expression %q", want)
+		}
+	}
+	for _, want := range []string{`suffix: TH/s`, `suffix: EH/s`, `joinByField`, `outerTabular`} {
+		if !strings.Contains(text, want) {
+			t.Fatalf("dashboard missing expected worker table or unit setting %q", want)
 		}
 	}
 }

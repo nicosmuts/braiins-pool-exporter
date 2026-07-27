@@ -17,7 +17,7 @@ const (
 	defaultListenAddress = ":9108"
 	defaultTelemetryPath = "/metrics"
 	defaultCoin          = "btc"
-	defaultPollInterval  = time.Minute
+	defaultPollInterval  = 10 * time.Second
 	defaultTimeout       = 10 * time.Second
 	defaultMaxWorkers    = 100
 	defaultHistoryDays   = 7

@@ -111,7 +111,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Current age of the latest accepted snapshot by endpoint. Data older than five configured poll intervals is operationally stale; the dashboard uses conservative illustrative thresholds because the poll interval is not exported as a metric.",
+      "description": "Age of each endpoint's latest successful exporter snapshot. With the default 10-second poll interval, green is fresh, yellow is delayed, and red is operationally stale.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -126,11 +126,11 @@
               },
               {
                 "color": "yellow",
-                "value": 300
+                "value": 30
               },
               {
                 "color": "red",
-                "value": 600
+                "value": 60
               }
             ]
           },
@@ -520,7 +520,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Age of the last accepted pool-stats snapshot inside this exporter. This tracks exporter-side freshness for the pool_stats endpoint.",
+      "description": "Age of the last accepted pool-stats snapshot inside this exporter. Green is 0-30s, yellow 30-60s, and red above 60s for the default 10-second poll interval.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -530,12 +530,16 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
+                "color": "green",
                 "value": 0
               },
               {
-                "color": "green",
-                "value": 1
+                "color": "yellow",
+                "value": 30
+              },
+              {
+                "color": "red",
+                "value": 60
               }
             ]
           },
@@ -607,7 +611,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Pool-wide hashrate windows from the authenticated Braiins Pool stats endpoint. The documented API exposes 5m, 60m, and 24h windows; it does not expose the website-only 30m average.",
+      "description": "Braiins pool-wide hashrate converted in the dashboard from the exported Gh/s metric to EH/s. Exporter metric names and units remain unchanged.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -617,7 +621,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "Gh/s",
+            "axisLabel": "EH/s",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
@@ -660,7 +664,8 @@
               }
             ]
           },
-          "unit": "suffix:Gh/s"
+          "unit": "suffix: EH/s",
+          "decimals": 3
         },
         "overrides": []
       },
@@ -701,13 +706,13 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (window) (braiins_pool_hashrate_ghs{job=~\"$job\", instance=~\"$instance\"})",
+          "expr": "sum by (window) (braiins_pool_hashrate_ghs{job=~\"$job\", instance=~\"$instance\"}) / 1e9",
           "legendFormat": "{{window}}",
-          "range": true,
-          "refId": "A"
+          "refId": "A",
+          "range": true
         }
       ],
-      "title": "Pool hashrate",
+      "title": "Pool hashrate (EH/s)",
       "type": "timeseries"
     },
     {
@@ -785,7 +790,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Worker hashrate by worker and reported window. Missing optional windows, including scoring hashrate, remain absent. Worker labels may be private.",
+      "description": "Worker hashrate converted in the dashboard from the exported Gh/s metric to TH/s. Values around 30000 Gh/s display as about 30 TH/s.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -795,7 +800,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "Gh/s",
+            "axisLabel": "TH/s",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
@@ -838,7 +843,8 @@
               }
             ]
           },
-          "unit": "suffix:Gh/s"
+          "unit": "suffix: TH/s",
+          "decimals": 2
         },
         "overrides": []
       },
@@ -879,13 +885,13 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (worker, window) (braiins_pool_worker_hashrate_ghs{job=~\"$job\", instance=~\"$instance\", worker=~\"$worker\"})",
+          "expr": "sum by (worker, window) (braiins_pool_worker_hashrate_ghs{job=~\"$job\", instance=~\"$instance\", worker=~\"$worker\"}) / 1000",
           "legendFormat": "{{worker}} {{window}}",
-          "range": true,
-          "refId": "A"
+          "refId": "A",
+          "range": true
         }
       ],
-      "title": "Worker hashrate",
+      "title": "Worker hashrate (TH/s)",
       "type": "timeseries"
     },
     {
@@ -893,7 +899,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Source update timestamp reported by Braiins for the pool stats payload. Use this together with endpoint freshness to distinguish stale source data from exporter polling failures.",
+      "description": "Source update timestamp reported by Braiins for the pool stats payload. The exported value is Unix seconds and is multiplied by 1000 here so Grafana renders a real date/time instead of a 1970-era millisecond interpretation.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -949,10 +955,10 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max(braiins_pool_stats_update_timestamp_seconds{job=~\"$job\", instance=~\"$instance\"})",
-          "legendFormat": "source update",
-          "range": true,
-          "refId": "A"
+          "expr": "max(braiins_pool_stats_update_timestamp_seconds{job=~\"$job\", instance=~\"$instance\"}) * 1000",
+          "legendFormat": "",
+          "refId": "A",
+          "range": false
         }
       ],
       "title": "Pool source update time",
@@ -963,7 +969,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Account hashrate by Braiins profile window. Uses only emitted account profile metrics; absent windows are left as no data instead of false zero.",
+      "description": "Account hashrate converted in the dashboard from the exported Gh/s metric to TH/s. Exporter metric names and units remain unchanged.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -973,7 +979,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "Gh/s",
+            "axisLabel": "TH/s",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
@@ -1016,7 +1022,8 @@
               }
             ]
           },
-          "unit": "suffix:Gh/s"
+          "unit": "suffix: TH/s",
+          "decimals": 2
         },
         "overrides": []
       },
@@ -1057,13 +1064,13 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (window) (braiins_pool_account_hashrate_ghs{job=~\"$job\", instance=~\"$instance\"})",
+          "expr": "sum by (window) (braiins_pool_account_hashrate_ghs{job=~\"$job\", instance=~\"$instance\"}) / 1000",
           "legendFormat": "{{window}}",
-          "range": true,
-          "refId": "A"
+          "refId": "A",
+          "range": true
         }
       ],
-      "title": "Account hashrate",
+      "title": "Account hashrate (TH/s)",
       "type": "timeseries"
     },
     {
@@ -1071,7 +1078,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Current worker count by normalized one-hot worker state. Worker labels are private runtime operator data; this aggregate panel does not list names.",
+      "description": "Number of selected workers currently in each one-hot state. Colors are fixed per state rather than threshold-driven.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1083,16 +1090,88 @@
               {
                 "color": "green",
                 "value": 0
-              },
-              {
-                "color": "yellow",
-                "value": 1
               }
             ]
           },
           "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ok"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "off"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "low"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "dis"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "unknown"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "gray"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 6,
@@ -1135,9 +1214,8 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (state) (braiins_pool_worker_state{job=~\"$job\", instance=~\"$instance\", worker=~\"$worker\"})",
+          "expr": "sum by (state) (braiins_pool_worker_state{job=~\"$job\", instance=~\"$instance\", worker=~\"$worker\"} == 1)",
           "legendFormat": "{{state}}",
-          "range": true,
           "refId": "A"
         }
       ],
@@ -1227,7 +1305,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Current active state per worker using the one-hot worker_state metric filtered to value 1. This panel displays runtime worker labels, which may reveal operator naming conventions.",
+      "description": "Current worker status joined from instant Prometheus queries. Worker names come from runtime labels; the dashboard does not store operator worker names. Last-share timestamps are Unix seconds converted to milliseconds for Grafana display.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1258,26 +1336,137 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Instance",
-              "scope": "series"
+              "options": "State"
             },
             "properties": [
               {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "ok": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "ok"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "off": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "off"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "low": {
+                        "color": "yellow",
+                        "index": 2,
+                        "text": "low"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "dis": {
+                        "color": "orange",
+                        "index": 3,
+                        "text": "dis"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "unknown": {
+                        "color": "gray",
+                        "index": 4,
+                        "text": "unknown"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
                 "id": "custom.width",
-                "value": 70
+                "value": 90
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Job",
-              "scope": "series"
+              "options": "Last share"
             },
             "properties": [
               {
+                "id": "unit",
+                "value": "dateTimeAsIso"
+              },
+              {
                 "id": "custom.width",
-                "value": 178
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Last share age"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "custom.width",
+                "value": 130
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*hashrate"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: TH/s"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Instance"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
               }
             ]
           }
@@ -1303,37 +1492,124 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "braiins_pool_worker_state{job=~\"$job\", instance=~\"$instance\", worker=~\"$worker\"} == 1",
-          "legendFormat": "{{worker}} {{state}}",
-          "range": false,
-          "refId": "A"
+          "expr": "max by (worker, state) (braiins_pool_worker_state{job=~\"$job\", instance=~\"$instance\", worker=~\"$worker\"} == 1)",
+          "legendFormat": "State",
+          "refId": "A",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "max by (worker) (braiins_pool_worker_last_share_timestamp_seconds{job=~\"$job\", instance=~\"$instance\", worker=~\"$worker\"}) * 1000",
+          "legendFormat": "Last share",
+          "refId": "B",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "max by (worker) (braiins_pool_worker_last_share_age_seconds{job=~\"$job\", instance=~\"$instance\", worker=~\"$worker\"})",
+          "legendFormat": "Last share age",
+          "refId": "C",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "max by (worker) (braiins_pool_worker_hashrate_ghs{job=~\"$job\", instance=~\"$instance\", worker=~\"$worker\", window=\"5m\"}) / 1000",
+          "legendFormat": "5m hashrate",
+          "refId": "D",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "max by (worker) (braiins_pool_worker_hashrate_ghs{job=~\"$job\", instance=~\"$instance\", worker=~\"$worker\", window=\"60m\"}) / 1000",
+          "legendFormat": "60m hashrate",
+          "refId": "E",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "max by (worker) (braiins_pool_worker_hashrate_ghs{job=~\"$job\", instance=~\"$instance\", worker=~\"$worker\", window=\"24h\"}) / 1000",
+          "legendFormat": "24h hashrate",
+          "refId": "F",
+          "format": "table",
+          "instant": true,
+          "range": false
         }
       ],
       "title": "Worker status table",
       "type": "table",
       "transformations": [
         {
+          "id": "joinByField",
+          "options": {
+            "byField": "worker",
+            "mode": "outerTabular"
+          }
+        },
+        {
           "id": "organize",
           "options": {
             "excludeByName": {
               "Time": true,
+              "Time 1": true,
+              "Time 2": true,
+              "Time 3": true,
+              "Time 4": true,
+              "Time 5": true,
               "Value": true,
+              "Value #A": true,
               "__name__": true,
               "instance": true,
               "job": true
             },
-            "includeByName": {},
             "indexByName": {
-              "instance": 1,
-              "job": 0,
-              "state": 3,
-              "worker": 2
+              "worker": 0,
+              "state": 1,
+              "Value #B": 2,
+              "Value #C": 3,
+              "Value #D": 4,
+              "Value #E": 5,
+              "Value #F": 6,
+              "instance": 7
             },
             "renameByName": {
-              "instance": "Instance",
-              "job": "Job",
+              "worker": "Worker",
               "state": "State",
-              "worker": "Worker"
+              "Value #B": "Last share",
+              "Value #C": "Last share age",
+              "Value #D": "5m hashrate",
+              "Value #E": "60m hashrate",
+              "Value #F": "24h hashrate",
+              "instance": "Instance"
             }
           }
         }
@@ -1444,7 +1720,7 @@
           "refId": "A"
         }
       ],
-      "title": "Worker shares",
+      "title": "Worker shares by window",
       "type": "timeseries"
     },
     {
@@ -1452,7 +1728,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Age since each worker's last accepted share. This is omitted when the API omits last_share; thresholds are illustrative operator hints, not universal mining fault criteria.",
+      "description": "Age since each worker's last accepted share. Green is recent, yellow is delayed, and red indicates a stale last-share signal.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1467,11 +1743,11 @@
               },
               {
                 "color": "yellow",
-                "value": 900
+                "value": 300
               },
               {
                 "color": "red",
-                "value": 3600
+                "value": 900
               }
             ]
           },
@@ -1534,7 +1810,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Bounded-window BTC reward summary by safe component. Historical reward dates and reward identifiers are not labels.",
+      "description": "Today's reward totals by component. Zero-valued components are kept visible so missing optional reward components are explicit.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1613,7 +1889,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Bounded-window payout amount in satoshis by normalized rail and status. Destinations, transaction IDs, invoices, and timestamps are not labels.",
+      "description": "Recent payout amount totals by bounded rail/status labels. Zero-valued combinations are preserved so rail/status coverage remains visible.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1683,7 +1959,7 @@
           "refId": "A"
         }
       ],
-      "title": "Payout amount",
+      "title": "Payout amounts by rail/status",
       "type": "bargauge"
     },
     {
@@ -1691,7 +1967,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Unix timestamp of the latest successful poll by endpoint, rendered as date/time. Missing series means the endpoint has not completed a successful poll for the selected targets.",
+      "description": "Exporter poll success timestamp by endpoint. The exported value is Unix seconds and is multiplied by 1000 here so Grafana renders the metric value as date/time.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1744,10 +2020,12 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "max by (endpoint) (braiins_pool_api_last_success_timestamp_seconds{job=~\"$job\", instance=~\"$instance\"})",
+          "expr": "max by (endpoint) (braiins_pool_api_last_success_timestamp_seconds{job=~\"$job\", instance=~\"$instance\"}) * 1000",
           "legendFormat": "{{endpoint}}",
-          "range": false,
-          "refId": "A"
+          "refId": "A",
+          "format": "table",
+          "instant": true,
+          "range": false
         }
       ],
       "title": "Last successful poll",
@@ -1758,7 +2036,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Failed logical poll ratio by endpoint. A ratio near zero is healthy; no data means no request counters are available for the selected target and time range.",
+      "description": "Ratio of failed API polls by endpoint. Healthy endpoints fall back to 0% when request telemetry exists but no failure series is present.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1856,17 +2134,17 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by (endpoint) (rate(braiins_pool_api_requests_total{job=~\"$job\", instance=~\"$instance\", result!=\"success\"}[$__rate_interval])) / clamp_min(sum by (endpoint) (rate(braiins_pool_api_requests_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])), 1e-12)",
+          "expr": "(sum by (endpoint) (rate(braiins_pool_api_requests_total{job=~\"$job\", instance=~\"$instance\", result!=\"success\"}[$__rate_interval])) / clamp_min(sum by (endpoint) (rate(braiins_pool_api_requests_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])), 1e-12)) or (0 * sum by (endpoint) (rate(braiins_pool_api_requests_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])))",
           "legendFormat": "{{endpoint}}",
-          "range": true,
-          "refId": "A"
+          "refId": "A",
+          "range": true
         }
       ],
       "title": "API failed poll ratio",
       "type": "timeseries"
     }
   ],
-  "refresh": "1m",
+  "refresh": "10s",
   "schemaVersion": 39,
   "style": "dark",
   "tags": [

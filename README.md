@@ -233,7 +233,7 @@ line flags are intentionally unsupported.
 |---|---:|---|
 | `BRAIINS_POOL_COIN` | `btc` | Coin selector. Only `btc` is currently verified and accepted. |
 | `BRAIINS_POOL_API_BASE_URL` | official API origin | Override for tests or compatible endpoints. |
-| `BRAIINS_POOL_POLL_INTERVAL` | `1m` | Poll interval. |
+| `BRAIINS_POOL_POLL_INTERVAL` | `10s` | Poll interval. |
 | `BRAIINS_POOL_TIMEOUT` | `10s` | Per-request HTTP timeout. |
 | `BRAIINS_POOL_WORKER_METRICS_ENABLED` | `true` | Enable worker metrics when a token is configured. |
 | `BRAIINS_POOL_MAX_WORKERS` | `100` | Maximum accepted workers per snapshot. |

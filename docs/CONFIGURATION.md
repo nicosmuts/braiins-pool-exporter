@@ -26,13 +26,22 @@ can expose command arguments.
 |---|---:|---|
 | `BRAIINS_POOL_COIN` | `btc` | Coin selector. Only `btc` is currently verified and accepted. |
 | `BRAIINS_POOL_API_BASE_URL` | official API origin | Override for tests or compatible endpoints. |
-| `BRAIINS_POOL_POLL_INTERVAL` | `1m` | Interval between completed poll cycles. |
+| `BRAIINS_POOL_POLL_INTERVAL` | `10s` | Interval between completed poll cycles. |
 | `BRAIINS_POOL_TIMEOUT` | `10s` | Per-request HTTP timeout. |
 | `BRAIINS_POOL_WORKER_METRICS_ENABLED` | `true` | Enable worker metrics when a token is configured. |
 | `BRAIINS_POOL_MAX_WORKERS` | `100` | Maximum accepted workers per snapshot. |
 | `BRAIINS_POOL_REWARDS_ENABLED` | `true` | Enable bounded rewards metrics. |
 | `BRAIINS_POOL_PAYOUTS_ENABLED` | `true` | Enable bounded payout metrics. |
 | `BRAIINS_POOL_HISTORY_DAYS` | `7` | Inclusive rewards and payouts history window, capped at 90 days. |
+
+The default `10s` poll interval is applied to the serialized exporter poll
+loop after all enabled endpoint steps complete. Endpoint steps are still spaced
+inside the loop, so account, pool, worker, rewards, and payouts requests do not
+all fire at the same instant and the effective per-endpoint request rate can be
+lower than one request every 10 seconds. Official public rate-limit details may
+change or be account-specific, so operators should increase the interval if
+Braiins Pool returns rate-limit responses or if their local deployment requires
+a more conservative cadence.
 
 ## Command-line flags
 

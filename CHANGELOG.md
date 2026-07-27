@@ -15,6 +15,16 @@ and this project intends to follow
   separate miner-mode Prometheus scrape configuration, and documentation of
   known AvalonMiner 1047 metric gaps before Issue #11 dashboard work.
 
+### Changed
+
+- Default Braiins polling cadence is now 10 seconds, and the Grafana dashboard
+  refreshes at 10 seconds for local operational validation.
+- Braiins dashboard hashrate panels now keep exporter metrics in Gh/s while
+  displaying pool hashrate as EH/s and account/worker hashrate as TH/s.
+- Braiins dashboard timestamp panels now convert Unix seconds for Grafana date
+  rendering, and the worker status table now joins current worker state,
+  last-share, and hashrate fields from instant Prometheus queries.
+
 ## [0.0.1] - 2026-07-27
 
 Initial public development release. This release is suitable for public review,

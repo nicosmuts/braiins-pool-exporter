@@ -18,8 +18,8 @@ func TestDefault(t *testing.T) {
 	if cfg.TelemetryPath != "/metrics" {
 		t.Fatalf("TelemetryPath = %q, want /metrics", cfg.TelemetryPath)
 	}
-	if cfg.PollInterval != time.Minute {
-		t.Fatalf("PollInterval = %s, want 1m", cfg.PollInterval)
+	if cfg.PollInterval != 10*time.Second {
+		t.Fatalf("PollInterval = %s, want 10s", cfg.PollInterval)
 	}
 	if cfg.Coin != "btc" {
 		t.Fatalf("Coin = %q, want btc", cfg.Coin)

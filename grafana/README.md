@@ -34,14 +34,14 @@ name, or deployment URL.
 | Job variable | `job`, multi-select include-all, `label_values(braiins_pool_exporter_ready, job)` |
 | Instance variable | `instance`, multi-select include-all, filtered by selected job |
 | Worker variable | `worker`, optional multi-select include-all, filtered by selected job and instance |
-| Refresh interval | `1m` |
+| Refresh interval | `10s` |
 | Default time range | Last 6 hours |
 | Panel grouping | Overview first, then collapsed pool statistics, account, worker, rewards, payouts, and API/freshness evidence |
 | No-data behavior | Missing series remain no data unless the metric contract defines a real zero |
 | Missing optional metric behavior | Optional fields and disabled collectors are documented in descriptions, not filled with false zeros |
 | Worker-name privacy | Worker labels may expose operator naming conventions; no worker value is stored in JSON |
 | Cardinality | Runtime worker labels are bounded by the exporter; dashboard variables do not add labels |
-| Unit formatting | Gh/s, BTC, satoshis, seconds, request/s, percentage, and counts |
+| Unit formatting | Dashboard-side TH/s and EH/s conversions, BTC, satoshis, seconds, request/s, percentage, and counts |
 | Thresholds | Only conservative operational hints for readiness, data age, failure ratio, and last-share age |
 | Rate versus counter | `braiins_pool_api_requests_total` is shown with `rate()`; rolling shares are gauges |
 | Freshness interpretation | `braiins_pool_data_age_seconds` is the primary staleness signal |
@@ -57,22 +57,22 @@ Prometheus scrape labels naturally.
 |---|---|---|---|---|---|---|---|---|
 | `braiins_pool_exporter_build_info` | gauge | `version`, `commit`, `build_date`, `go_version` | none | self | always present | inventory only | exporter not scraped if absent | safe build metadata |
 | `braiins_pool_exporter_ready` | gauge | none | none | self | always present | readiness, job and instance variables | exporter not scraped or selection empty | no private labels |
-| `braiins_pool_hashrate_ghs` | gauge | `window` | Gh/s | pool | token-dependent after first pool stats success | pool hashrate time series | no token, no first success, missing documented window, or empty selection | pool-wide aggregate only |
+| `braiins_pool_hashrate_ghs` | gauge | `window` | Gh/s | pool | token-dependent after first pool stats success | pool hashrate time series, displayed as EH/s | no token, no first success, missing documented window, or empty selection | pool-wide aggregate only |
 | `braiins_pool_active_workers` | gauge | none | count | pool | token-dependent after first pool stats success | pool active workers stat | no token, no first success, or empty selection | pool-wide aggregate only |
-| `braiins_pool_stats_update_timestamp_seconds` | gauge | none | Unix seconds | pool | token-dependent and field-dependent | source update time stat | no token, no first success, omitted source timestamp, or empty selection | pool-wide source timestamp only |
-| `braiins_pool_account_hashrate_ghs` | gauge | `window` | Gh/s | account | token-dependent after first profile success | account hashrate time series | no token, no first success, missing profile window, or empty selection | no account label |
+| `braiins_pool_stats_update_timestamp_seconds` | gauge | none | Unix seconds | pool | token-dependent and field-dependent | source update time stat, multiplied by 1000 for Grafana date rendering | no token, no first success, omitted source timestamp, or empty selection | pool-wide source timestamp only |
+| `braiins_pool_account_hashrate_ghs` | gauge | `window` | Gh/s | account | token-dependent after first profile success | account hashrate time series, displayed as TH/s | no token, no first success, missing profile window, or empty selection | no account label |
 | `braiins_pool_account_balance_btc` | gauge | none | BTC | account | token-dependent and field-dependent | account balance stat | no token, no first success, omitted balance field, or empty selection | financial value, no account label |
 | `braiins_pool_account_workers` | gauge | `state` | count | account | token-dependent after first profile success | aggregate worker states | no token, no first success, or empty selection | aggregate only |
 | `braiins_pool_worker_state` | gauge | `worker`, `state` | one-hot | worker | token- and worker-endpoint-dependent | state counts, status table, worker variable | worker metrics disabled, no first worker success, no workers, or empty selection | worker label may be private |
-| `braiins_pool_worker_hashrate_ghs` | gauge | `worker`, `window` | Gh/s | worker | token- and optional-field-dependent | worker hashrate time series | worker metrics disabled, no first success, omitted window, or empty selection | worker label may be private |
+| `braiins_pool_worker_hashrate_ghs` | gauge | `worker`, `window` | Gh/s | worker | token- and optional-field-dependent | worker hashrate time series and status table, displayed as TH/s | worker metrics disabled, no first success, omitted window, or empty selection | worker label may be private |
 | `braiins_pool_worker_shares` | gauge | `worker`, `window` | shares | worker | token- and optional-field-dependent | worker shares time series | worker metrics disabled, no first success, omitted window, or empty selection | worker label may be private |
-| `braiins_pool_worker_last_share_timestamp_seconds` | gauge | `worker` | Unix seconds | worker | optional-field-dependent | inventory only | last-share absent or no first worker success | worker label may be private |
+| `braiins_pool_worker_last_share_timestamp_seconds` | gauge | `worker` | Unix seconds | worker | optional-field-dependent | status table, multiplied by 1000 for Grafana date rendering | last-share absent or no first worker success | worker label may be private |
 | `braiins_pool_worker_last_share_age_seconds` | gauge | `worker` | seconds | worker | optional-field-dependent | last-share age bar gauge | last-share absent or no first worker success | worker label may be private |
 | `braiins_pool_reward_daily_btc` | gauge | `component` | BTC | rewards | token- and rewards-endpoint-dependent | reward component summary | rewards disabled, no first success, or empty selection | bounded financial summary |
 | `braiins_pool_payout_amount_sats` | gauge | `rail`, `status` | satoshis | payouts | token- and payouts-endpoint-dependent | payout amount summary | payouts disabled, no first success, or empty selection | bounded financial summary; no destinations |
 | `braiins_pool_payout_fee_sats` | gauge | `rail`, `status` | satoshis | payouts | token- and payouts-endpoint-dependent | payout fee summary | payouts disabled, no first success, or empty selection | bounded financial summary; no destinations |
 | `braiins_pool_api_requests_total` | counter | `endpoint`, `result` | logical polls | pool, account, worker, rewards, payouts | emitted after poll attempts | request rate and failed-poll ratio | endpoint has not attempted a poll or selection empty | bounded endpoint/result labels |
-| `braiins_pool_api_last_success_timestamp_seconds` | gauge | `endpoint` | Unix seconds | pool, account, worker, rewards, payouts | endpoint-dependent after first success | last successful poll table | endpoint has not succeeded, disabled collector, or empty selection | bounded endpoint labels |
+| `braiins_pool_api_last_success_timestamp_seconds` | gauge | `endpoint` | Unix seconds | pool, account, worker, rewards, payouts | endpoint-dependent after first success | last successful poll table, multiplied by 1000 for Grafana date rendering | endpoint has not succeeded, disabled collector, or empty selection | bounded endpoint labels |
 | `braiins_pool_data_age_seconds` | gauge | `endpoint` | seconds | pool, account, worker, rewards, payouts | endpoint-dependent after first success | endpoint freshness bar gauge | endpoint has not succeeded, disabled collector, or empty selection | bounded endpoint labels |
 
 The standard Go runtime and process collectors are available from Prometheus
@@ -84,7 +84,7 @@ the exporter contract documented in `docs/METRICS.md`.
 | Section | Panels | Metrics |
 |---|---|---|
 | Exporter overview | Exporter readiness, selected instances, endpoint data age, API poll result rate | `braiins_pool_exporter_ready`, `braiins_pool_data_age_seconds`, `braiins_pool_api_requests_total` |
-| Pool Statistics | Pool hashrate, pool active workers, pool stats freshness, pool source update time | pool metrics and pool stats freshness |
+| Pool Statistics | Pool hashrate (EH/s), pool active workers, pool stats freshness, pool source update time | pool metrics and pool stats freshness |
 | Account | Account hashrate, account balance, account workers by state | account metrics |
 | Workers | Worker states, worker status table, worker hashrate, worker last-share age, worker shares | worker metrics |
 | Rewards | Rewards by component | `braiins_pool_reward_daily_btc` |
@@ -110,12 +110,13 @@ Worker panels also use:
 {worker=~"$worker"}
 ```
 
-The dashboard avoids `or vector(0)` because absent account, worker, reward,
-payout, or freshness series can mean several different things: no token,
-collector disabled, first poll not complete, optional API field absent,
-successful empty history before a first scrape, or an empty variable
-selection. Panel descriptions explain these states instead of converting them
-to false zeros.
+The dashboard avoids broad `or vector(0)` fallbacks because absent account,
+worker, reward, payout, or freshness series can mean several different things:
+no token, collector disabled, first poll not complete, optional API field
+absent, successful empty history before a first scrape, or an empty variable
+selection. The failed-poll ratio is the narrow exception: when request telemetry
+exists and no failure series exists for an endpoint, the panel renders a real
+healthy `0%` instead of `No data`.
 
 Freshness uses `braiins_pool_data_age_seconds`. Data older than five configured
 poll intervals is operationally stale according to the exporter design.
