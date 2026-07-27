@@ -16,6 +16,7 @@ func TestSanitizedFixturesDecode(t *testing.T) {
 		out  any
 	}{
 		{name: "profile", file: "profile_success.json", out: &ProfileResponse{}},
+		{name: "pool stats", file: "pool_stats_success.json", out: &CoinEnvelope[PoolStats]{}},
 		{name: "workers", file: "workers_success.json", out: &CoinEnvelope[WorkersResponse]{}},
 		{name: "rewards", file: "rewards_success.json", out: &CoinEnvelope[RewardsResponse]{}},
 		{name: "payouts", file: "payouts_success.json", out: &PayoutsResponse{}},

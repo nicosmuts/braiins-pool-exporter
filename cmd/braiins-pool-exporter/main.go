@@ -41,6 +41,7 @@ func run(args []string) error {
 
 	build := version.Current()
 	registry, selfMetrics := collector.NewRegistry(build)
+	var poolMetrics *collector.PoolMetrics
 	var accountMetrics *collector.AccountMetrics
 	var workerMetrics *collector.WorkerMetrics
 	var historyMetrics *collector.HistoryMetrics
@@ -53,6 +54,14 @@ func run(args []string) error {
 		if err != nil {
 			return err
 		}
+		poolMetrics, err = collector.NewPoolMetrics(collector.PoolOptions{
+			Client: client,
+			Coin:   cfg.Coin,
+		})
+		if err != nil {
+			return err
+		}
+		collector.RegisterPoolMetrics(registry, poolMetrics)
 		accountMetrics, err = collector.NewAccountMetrics(collector.AccountOptions{
 			Client:       client,
 			Coin:         cfg.Coin,
@@ -111,6 +120,9 @@ func run(args []string) error {
 	pollDone := make(chan struct{})
 	if accountMetrics != nil {
 		steps := []pollStep{accountMetrics.Poll}
+		if poolMetrics != nil {
+			steps = append(steps, poolMetrics.Poll)
+		}
 		if workerMetrics != nil {
 			steps = append(steps, workerMetrics.Poll)
 		}

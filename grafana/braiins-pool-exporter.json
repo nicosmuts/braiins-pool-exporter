@@ -301,6 +301,293 @@
       "type": "timeseries"
     },
     {
+      "collapsed": true,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "id": 17,
+      "panels": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "description": "Pool-wide hashrate windows from the authenticated Braiins Pool stats endpoint. The documented API exposes 5m, 60m, and 24h windows; it does not expose the website-only 30m average.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "Gh/s",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "unit": "suffix:Gh/s"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 5
+          },
+          "id": 18,
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "11.0.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (window) (braiins_pool_hashrate_ghs{job=~\"$job\", instance=~\"$instance\"})",
+              "legendFormat": "{{window}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Pool hashrate",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "description": "Pool-wide active worker count from the authenticated Braiins Pool stats endpoint. Active users are intentionally absent because the documented API does not expose that field.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 1
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 12,
+            "y": 5
+          },
+          "id": 19,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "pluginVersion": "11.0.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+              },
+              "editorMode": "code",
+              "expr": "sum(braiins_pool_active_workers{job=~\"$job\", instance=~\"$instance\"})",
+              "legendFormat": "active workers",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Pool active workers",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "description": "Age of the last accepted pool-stats snapshot inside this exporter. This tracks exporter-side freshness for the pool_stats endpoint.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 1
+                  }
+                ]
+              },
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 18,
+            "y": 5
+          },
+          "id": 20,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "pluginVersion": "11.0.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+              },
+              "editorMode": "code",
+              "expr": "max(braiins_pool_data_age_seconds{job=~\"$job\", instance=~\"$instance\", endpoint=\"pool_stats\"})",
+              "legendFormat": "pool stats age",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Pool stats freshness",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "description": "Source update timestamp reported by Braiins for the pool stats payload. Use this together with endpoint freshness to distinguish stale source data from exporter polling failures.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "unit": "dateTimeAsIso"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 12,
+            "y": 9
+          },
+          "id": 21,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "pluginVersion": "11.0.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+              },
+              "editorMode": "code",
+              "expr": "max(braiins_pool_stats_update_timestamp_seconds{job=~\"$job\", instance=~\"$instance\"})",
+              "legendFormat": "source update",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Pool source update time",
+          "type": "stat"
+        }
+      ],
+      "title": "Pool Statistics",
+      "type": "row"
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
@@ -350,7 +637,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 4
+        "y": 5
       },
       "id": 5,
       "options": {
@@ -404,7 +691,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 4
+        "y": 5
       },
       "id": 6,
       "options": {
@@ -457,7 +744,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 8
+        "y": 9
       },
       "id": 7,
       "options": {
@@ -526,7 +813,7 @@
         "h": 4,
         "w": 8,
         "x": 0,
-        "y": 12
+        "y": 13
       },
       "id": 8,
       "options": {
@@ -599,7 +886,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 12
+        "y": 13
       },
       "id": 9,
       "options": {
@@ -707,7 +994,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 12
+        "y": 13
       },
       "id": 10,
       "options": {
@@ -777,7 +1064,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 20
+        "y": 21
       },
       "id": 11,
       "options": {
@@ -864,7 +1151,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 20
+        "y": 21
       },
       "id": 12,
       "options": {
@@ -918,7 +1205,7 @@
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 26
+        "y": 27
       },
       "id": 13,
       "options": {
@@ -974,7 +1261,7 @@
         "h": 6,
         "w": 8,
         "x": 8,
-        "y": 26
+        "y": 27
       },
       "id": 14,
       "options": {
@@ -1030,7 +1317,7 @@
         "h": 6,
         "w": 8,
         "x": 16,
-        "y": 26
+        "y": 27
       },
       "id": 15,
       "options": {
@@ -1086,7 +1373,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 32
+        "y": 33
       },
       "id": 16,
       "options": {
@@ -1187,7 +1474,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 32
+        "y": 33
       },
       "id": 17,
       "options": {

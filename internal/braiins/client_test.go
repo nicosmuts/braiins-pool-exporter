@@ -78,6 +78,37 @@ func TestRewardsAndPayoutsUseBoundedDateQueries(t *testing.T) {
 	}
 }
 
+func TestPoolStatsUsesDocumentedEndpoint(t *testing.T) {
+	t.Parallel()
+
+	var gotURL string
+	workers := int64(123456)
+	client, err := NewClient(Config{
+		BaseURL: "https://pool.braiins.com/api",
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			gotURL = req.URL.String()
+			body := fmt.Sprintf(`{"btc":{"hash_rate_unit":"Gh/s","pool_active_workers":%d,"pool_5m_hash_rate":1,"pool_60m_hash_rate":2,"pool_24h_hash_rate":3}}`, workers)
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       io.NopCloser(strings.NewReader(body)),
+			}, nil
+		}),
+	})
+	if err != nil {
+		t.Fatalf("NewClient() error = %v", err)
+	}
+	stats, err := client.PoolStats(context.Background(), "BTC")
+	if err != nil {
+		t.Fatalf("PoolStats() error = %v", err)
+	}
+	if gotURL != "https://pool.braiins.com/api/stats/json/btc" {
+		t.Fatalf("PoolStats URL = %q", gotURL)
+	}
+	if stats["btc"].PoolActiveWorkers == nil || *stats["btc"].PoolActiveWorkers != workers {
+		t.Fatalf("PoolActiveWorkers = %#v", stats["btc"].PoolActiveWorkers)
+	}
+}
+
 func TestClientRejectsUnsafeBaseURLWithoutLeakingToken(t *testing.T) {
 	t.Parallel()
 

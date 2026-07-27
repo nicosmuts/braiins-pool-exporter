@@ -42,6 +42,28 @@ destinations, account names, or reward/event identifiers to labels.
 
 The standard Go runtime and process collectors are also registered.
 
+## Implemented in Pool Statistics telemetry
+
+Pool-wide telemetry is enabled when a Braiins token is configured through
+`BRAIINS_POOL_TOKEN` or `BRAIINS_POOL_TOKEN_FILE`. It uses the documented
+authenticated Pool Stats endpoint and is cached independently from account,
+worker, reward, and payout data. Before the first successful pool-stats poll,
+pool data metrics are omitted.
+
+The documented API exposes 5m, 60m, and 24h pool hashrate windows and active
+pool workers. It does not expose total active users or the website-only
+30-minute pool hashrate average, so those values are not implemented and must
+not be estimated or scraped from the website.
+
+| Metric | Type | Labels | Source | Unit/conversion | Behavior |
+|---|---|---|---|---|---|
+| `braiins_pool_hashrate_ghs` | gauge | `window` | pool stats: `pool_5m_hash_rate`, `pool_60m_hash_rate`, `pool_24h_hash_rate` | source `Gh/s`, export as `Gh/s` | omit missing windows; windows are `5m`, `60m`, and `24h` only |
+| `braiins_pool_active_workers` | gauge | none | pool stats: `pool_active_workers` | worker count | emitted only after a valid pool stats snapshot; never label by user or account |
+| `braiins_pool_stats_update_timestamp_seconds` | gauge | none | pool stats: `update_ts` | Unix seconds | omitted when the source timestamp is absent or zero |
+| `braiins_pool_api_requests_total` | counter | `endpoint`, `result` | exporter HTTP client | logical polls | endpoint includes `pool_stats`; result is one of `success`, `unauthorized`, `forbidden`, `rate_limited`, `timeout`, `transport`, `server`, `decode`, `invalid_data`, `canceled`, `http_error`, or `error` |
+| `braiins_pool_api_last_success_timestamp_seconds` | gauge | `endpoint` | exporter polling state | Unix seconds | emitted for endpoint `pool_stats` only after a successful pool stats poll |
+| `braiins_pool_data_age_seconds` | gauge | `endpoint` | exporter polling state | seconds | age of latest accepted pool stats snapshot |
+
 ## Implemented in Milestone 02
 
 Account collection is enabled only when a Braiins token is configured through

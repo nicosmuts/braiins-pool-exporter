@@ -1,0 +1,12 @@
+{
+  "btc": {
+    "hash_rate_unit": "Gh/s",
+    "pool_active_workers": 123456,
+    "pool_5m_hash_rate": 5727000000.74660415488,
+    "pool_60m_hash_rate": 5719000000.123456789,
+    "pool_24h_hash_rate": 5701000000.987654321,
+    "update_ts": 1785080000,
+    "blocks": {},
+    "fpps_rate": "0.000000000000000001"
+  }
+}

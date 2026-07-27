@@ -16,6 +16,7 @@ func TestAllCollectorsConcurrentPollAndGather(t *testing.T) {
 	t.Parallel()
 
 	clock := &fakeClock{now: time.Unix(100, 0)}
+	pool := newTestPoolMetrics(t, fakePoolClient{stats: []braiins.CoinEnvelope[braiins.PoolStats]{testPoolStats()}}, clock)
 	account := newTestAccountMetrics(t, fakeAccountClient{profiles: []braiins.ProfileResponse{testProfile()}}, clock)
 	worker := newTestWorkerMetrics(t, fakeWorkerClient{responses: []braiins.CoinEnvelope[braiins.WorkersResponse]{testWorkers("worker-a", "worker-b")}}, clock, 100)
 	history := newTestHistoryMetrics(t, fakeHistoryClient{
@@ -24,6 +25,7 @@ func TestAllCollectorsConcurrentPollAndGather(t *testing.T) {
 	}, clock, 7, true, true)
 
 	registry := prometheus.NewRegistry()
+	RegisterPoolMetrics(registry, pool)
 	RegisterAccountMetrics(registry, account)
 	RegisterWorkerMetrics(registry, worker)
 	RegisterHistoryMetrics(registry, history)
@@ -36,6 +38,7 @@ func TestAllCollectorsConcurrentPollAndGather(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			for j := 0; j < 20; j++ {
+				_ = pool.Poll(ctx)
 				_ = account.Poll(ctx)
 				_ = worker.Poll(ctx)
 				_ = history.Poll(ctx)
@@ -60,6 +63,7 @@ func TestAllCollectorsConcurrentPollAndGather(t *testing.T) {
 		}
 	}
 	families := gatherFamilies(t, registry)
+	assertMetric(t, families, "braiins_pool_api_requests_total", map[string]string{"endpoint": "pool_stats", "result": "success"}, 160)
 	assertMetric(t, families, "braiins_pool_api_requests_total", map[string]string{"endpoint": "profile", "result": "success"}, 160)
 	assertMetric(t, families, "braiins_pool_api_requests_total", map[string]string{"endpoint": "workers", "result": "success"}, 160)
 	assertMetric(t, families, "braiins_pool_api_requests_total", map[string]string{"endpoint": "rewards", "result": "success"}, 160)

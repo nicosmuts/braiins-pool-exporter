@@ -82,7 +82,7 @@ rate limits.
 
 | Endpoint | Method | Path | Purpose | Parameters | Response envelope | Fixture | Confidence |
 |---|---|---|---|---|---|---|---|
-| Pool stats | GET | `/stats/json/btc` | Pool performance and recent blocks | coin path segment | `{ "btc": { ... } }` | none | documented |
+| Pool stats | GET | `/stats/json/btc` | Pool performance and recent blocks | coin path segment | `{ "btc": { ... } }` | `pool_stats_success.json` | documented |
 | User profile | GET | `/accounts/profile/json/btc/` | User performance and rewards | coin path segment | `{ "username": "...", "btc": { ... } }` | `profile_success.json` | documented |
 | Daily rewards | GET | `/accounts/rewards/json/btc?from=YYYY-MM-DD&to=YYYY-MM-DD` | Daily rewards for a selected period; last 90 days by default | optional `from`, `to` date strings | `{ "btc": { "daily_rewards": [...] } }` | `rewards_success.json` | documented |
 | Daily hashrate | GET | `/accounts/hash_rate_daily/json/[group]/btc` | Daily average hashrate for user or user group | group path segment, coin path segment | `{ "btc": [...] }` | none | documented; group selector unresolved |
@@ -94,6 +94,43 @@ The documentation overview mentions four endpoints: stats, profile, workers,
 and payouts. The same page also documents daily rewards, daily hashrate, and
 block rewards. This project treats those additional documented sections as API
 endpoints, but keeps implementation sequencing tied to milestones.
+
+## Pool stats schema
+
+The Pool Stats endpoint is an authenticated, documented read-only API endpoint:
+`GET /stats/json/btc`. A 2026-07-27 bounded validation confirmed that the
+current token can access the endpoint and that unauthenticated access returns
+HTTP 403.
+
+Live-confirmed pool-wide fields:
+
+- `hash_rate_unit`;
+- `pool_active_workers`;
+- `pool_5m_hash_rate`;
+- `pool_60m_hash_rate`;
+- `pool_24h_hash_rate`;
+- `update_ts`;
+- `blocks`;
+- `fpps_rate`.
+
+Implemented pool-wide metrics use only fields with clear units and operational
+value: hashrate windows in `Gh/s`, active workers, and the source update
+timestamp. `blocks` is not exported because block entries would require a
+separate timestamp-aware design and block identifiers or heights must not
+become ordinary scrape labels. `fpps_rate` remains decode-only because the
+currently available documentation and live shape did not establish a
+Prometheus-safe unit and help text for a stable public metric.
+
+Not implemented:
+
+- total active users;
+- website Pool Effective HR 30-minute average.
+
+Reason: neither value was exposed by the documented authenticated Pool Stats
+API response observed during validation. The public Braiins Pool frontend
+application references active-user and active-worker chart fields, but the
+exporter does not scrape the website, automate a browser, estimate a 30-minute
+window from other windows, or depend on unsupported frontend data sources.
 
 ## Coin behavior
 

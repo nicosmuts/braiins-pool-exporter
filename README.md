@@ -28,11 +28,11 @@
 </p>
 
 Braiins Pool Exporter is an independent Prometheus exporter for users of the
-official Braiins Pool API. It polls verified Braiins Pool account, worker,
-reward, and payout endpoints, normalizes the responses into stable Prometheus
-metrics, and serves them from a small Go HTTP process. Prometheus scrapes the
-exporter rather than the pool API directly, while the included Grafana
-dashboard provides a reusable default view of the exported metrics.
+official Braiins Pool API. It polls verified Braiins Pool pool-wide, account,
+worker, reward, and payout endpoints, normalizes the responses into stable
+Prometheus metrics, and serves them from a small Go HTTP process. Prometheus
+scrapes the exporter rather than the pool API directly, while the included
+Grafana dashboard provides a reusable default view of the exported metrics.
 
 Data flows from Avalon miners to Braiins Pool, then through Braiins Pool
 Exporter into Prometheus and Grafana. The exporter keeps deployment-specific
@@ -52,6 +52,15 @@ outside the public repository.
 - Tag-gated container publishing and GitHub Releases are configured.
 
 ## Features
+
+### Pool metrics
+
+- Pool-wide hashrate windows from the authenticated Pool Stats API.
+- Pool-wide active worker count.
+- Pool stats source update timestamp.
+- Pool stats endpoint freshness and last-success timestamps.
+- Active users and the website-only 30-minute average are not implemented
+  because they are not exposed by the documented authenticated API.
 
 ### Account metrics
 
@@ -93,6 +102,7 @@ outside the public repository.
 - Stable dashboard UID `braiins-pool-exporter`.
 - Prometheus datasource variable.
 - Portable job, instance, and optional worker filters.
+- Collapsed pool statistics row.
 - Account, worker, rewards, payouts, API health, and freshness panels.
 
 ## Quick start

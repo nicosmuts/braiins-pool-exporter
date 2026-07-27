@@ -17,12 +17,15 @@ var allowedMetrics = map[string]struct{}{
 	"braiins_pool_account_workers":                     {},
 	"braiins_pool_api_last_success_timestamp_seconds":  {},
 	"braiins_pool_api_requests_total":                  {},
+	"braiins_pool_active_workers":                      {},
 	"braiins_pool_data_age_seconds":                    {},
 	"braiins_pool_exporter_build_info":                 {},
 	"braiins_pool_exporter_ready":                      {},
+	"braiins_pool_hashrate_ghs":                        {},
 	"braiins_pool_payout_amount_sats":                  {},
 	"braiins_pool_payout_fee_sats":                     {},
 	"braiins_pool_reward_daily_btc":                    {},
+	"braiins_pool_stats_update_timestamp_seconds":      {},
 	"braiins_pool_worker_hashrate_ghs":                 {},
 	"braiins_pool_worker_last_share_age_seconds":       {},
 	"braiins_pool_worker_last_share_timestamp_seconds": {},
@@ -54,6 +57,7 @@ type dashboard struct {
 }
 
 type panel struct {
+	Collapsed   bool       `json:"collapsed"`
 	Datasource  datasource `json:"datasource"`
 	Description string     `json:"description"`
 	FieldConfig struct {
@@ -62,6 +66,7 @@ type panel struct {
 		} `json:"defaults"`
 	} `json:"fieldConfig"`
 	Targets []target  `json:"targets"`
+	Panels  []panel   `json:"panels"`
 	Title   string    `json:"title"`
 	Type    string    `json:"type"`
 	Alert   *struct{} `json:"alert"`
@@ -138,7 +143,10 @@ func TestDashboardQueriesArePortableAndUseKnownMetrics(t *testing.T) {
 	dash := loadDashboard(t)
 	metricName := regexp.MustCompile(`braiins_pool(?:_exporter)?_[a-z0-9_]+`)
 
-	for _, panel := range dash.Panels {
+	for _, panel := range allPanels(dash.Panels) {
+		if panel.Type == "row" {
+			continue
+		}
 		if panel.Alert != nil {
 			t.Fatalf("panel %q contains alert configuration", panel.Title)
 		}
@@ -222,7 +230,7 @@ func TestDashboardMetricInventoryStaysExplicit(t *testing.T) {
 	dash := loadDashboard(t)
 	metricName := regexp.MustCompile(`braiins_pool(?:_exporter)?_[a-z0-9_]+`)
 	seen := map[string]struct{}{}
-	for _, panel := range dash.Panels {
+	for _, panel := range allPanels(dash.Panels) {
 		for _, target := range panel.Targets {
 			for _, name := range metricName.FindAllString(target.Expr, -1) {
 				seen[name] = struct{}{}
@@ -241,6 +249,47 @@ func TestDashboardMetricInventoryStaysExplicit(t *testing.T) {
 			t.Fatalf("unknown metric reference %q", name)
 		}
 	}
+}
+
+func TestDashboardContainsCollapsedPoolStatisticsRow(t *testing.T) {
+	dash := loadDashboard(t)
+	for _, panel := range dash.Panels {
+		if panel.Title != "Pool Statistics" {
+			continue
+		}
+		if panel.Type != "row" {
+			t.Fatalf("Pool Statistics type = %q, want row", panel.Type)
+		}
+		if !panel.Collapsed {
+			t.Fatal("Pool Statistics row is not collapsed")
+		}
+		titles := map[string]struct{}{}
+		for _, nested := range panel.Panels {
+			titles[nested.Title] = struct{}{}
+		}
+		for _, title := range []string{"Pool hashrate", "Pool active workers", "Pool stats freshness"} {
+			if _, ok := titles[title]; !ok {
+				t.Fatalf("Pool Statistics row missing panel %q", title)
+			}
+		}
+		return
+	}
+	t.Fatal("missing Pool Statistics row")
+}
+
+func allPanels(panels []panel) []panel {
+	var out []panel
+	var walk func([]panel)
+	walk = func(items []panel) {
+		for _, panel := range items {
+			out = append(out, panel)
+			if len(panel.Panels) > 0 {
+				walk(panel.Panels)
+			}
+		}
+	}
+	walk(panels)
+	return out
 }
 
 func loadDashboard(t *testing.T) dashboard {

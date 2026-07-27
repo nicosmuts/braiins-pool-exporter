@@ -36,7 +36,7 @@ name, or deployment URL.
 | Worker variable | `worker`, optional multi-select include-all, filtered by selected job and instance |
 | Refresh interval | `1m` |
 | Default time range | Last 6 hours |
-| Panel grouping | Overview first, then account, worker, rewards, payouts, and API/freshness evidence |
+| Panel grouping | Overview first, then collapsed pool statistics, account, worker, rewards, payouts, and API/freshness evidence |
 | No-data behavior | Missing series remain no data unless the metric contract defines a real zero |
 | Missing optional metric behavior | Optional fields and disabled collectors are documented in descriptions, not filled with false zeros |
 | Worker-name privacy | Worker labels may expose operator naming conventions; no worker value is stored in JSON |
@@ -57,6 +57,9 @@ Prometheus scrape labels naturally.
 |---|---|---|---|---|---|---|---|---|
 | `braiins_pool_exporter_build_info` | gauge | `version`, `commit`, `build_date`, `go_version` | none | self | always present | inventory only | exporter not scraped if absent | safe build metadata |
 | `braiins_pool_exporter_ready` | gauge | none | none | self | always present | readiness, job and instance variables | exporter not scraped or selection empty | no private labels |
+| `braiins_pool_hashrate_ghs` | gauge | `window` | Gh/s | pool | token-dependent after first pool stats success | pool hashrate time series | no token, no first success, missing documented window, or empty selection | pool-wide aggregate only |
+| `braiins_pool_active_workers` | gauge | none | count | pool | token-dependent after first pool stats success | pool active workers stat | no token, no first success, or empty selection | pool-wide aggregate only |
+| `braiins_pool_stats_update_timestamp_seconds` | gauge | none | Unix seconds | pool | token-dependent and field-dependent | source update time stat | no token, no first success, omitted source timestamp, or empty selection | pool-wide source timestamp only |
 | `braiins_pool_account_hashrate_ghs` | gauge | `window` | Gh/s | account | token-dependent after first profile success | account hashrate time series | no token, no first success, missing profile window, or empty selection | no account label |
 | `braiins_pool_account_balance_btc` | gauge | none | BTC | account | token-dependent and field-dependent | account balance stat | no token, no first success, omitted balance field, or empty selection | financial value, no account label |
 | `braiins_pool_account_workers` | gauge | `state` | count | account | token-dependent after first profile success | aggregate worker states | no token, no first success, or empty selection | aggregate only |
@@ -68,9 +71,9 @@ Prometheus scrape labels naturally.
 | `braiins_pool_reward_daily_btc` | gauge | `component` | BTC | rewards | token- and rewards-endpoint-dependent | reward component summary | rewards disabled, no first success, or empty selection | bounded financial summary |
 | `braiins_pool_payout_amount_sats` | gauge | `rail`, `status` | satoshis | payouts | token- and payouts-endpoint-dependent | payout amount summary | payouts disabled, no first success, or empty selection | bounded financial summary; no destinations |
 | `braiins_pool_payout_fee_sats` | gauge | `rail`, `status` | satoshis | payouts | token- and payouts-endpoint-dependent | payout fee summary | payouts disabled, no first success, or empty selection | bounded financial summary; no destinations |
-| `braiins_pool_api_requests_total` | counter | `endpoint`, `result` | logical polls | account, worker, rewards, payouts | emitted after poll attempts | request rate and failed-poll ratio | endpoint has not attempted a poll or selection empty | bounded endpoint/result labels |
-| `braiins_pool_api_last_success_timestamp_seconds` | gauge | `endpoint` | Unix seconds | account, worker, rewards, payouts | endpoint-dependent after first success | last successful poll table | endpoint has not succeeded, disabled collector, or empty selection | bounded endpoint labels |
-| `braiins_pool_data_age_seconds` | gauge | `endpoint` | seconds | account, worker, rewards, payouts | endpoint-dependent after first success | endpoint freshness bar gauge | endpoint has not succeeded, disabled collector, or empty selection | bounded endpoint labels |
+| `braiins_pool_api_requests_total` | counter | `endpoint`, `result` | logical polls | pool, account, worker, rewards, payouts | emitted after poll attempts | request rate and failed-poll ratio | endpoint has not attempted a poll or selection empty | bounded endpoint/result labels |
+| `braiins_pool_api_last_success_timestamp_seconds` | gauge | `endpoint` | Unix seconds | pool, account, worker, rewards, payouts | endpoint-dependent after first success | last successful poll table | endpoint has not succeeded, disabled collector, or empty selection | bounded endpoint labels |
+| `braiins_pool_data_age_seconds` | gauge | `endpoint` | seconds | pool, account, worker, rewards, payouts | endpoint-dependent after first success | endpoint freshness bar gauge | endpoint has not succeeded, disabled collector, or empty selection | bounded endpoint labels |
 
 The standard Go runtime and process collectors are available from Prometheus
 but are intentionally not used by this dashboard; the default view focuses on
@@ -81,14 +84,17 @@ the exporter contract documented in `docs/METRICS.md`.
 | Section | Panels | Metrics |
 |---|---|---|
 | Exporter overview | Exporter readiness, selected instances, endpoint data age, API poll result rate | `braiins_pool_exporter_ready`, `braiins_pool_data_age_seconds`, `braiins_pool_api_requests_total` |
+| Pool Statistics | Pool hashrate, pool active workers, pool stats freshness, pool source update time | pool metrics and pool stats freshness |
 | Account | Account hashrate, account balance, account workers by state | account metrics |
 | Workers | Worker states, worker status table, worker hashrate, worker last-share age, worker shares | worker metrics |
 | Rewards | Rewards by component | `braiins_pool_reward_daily_btc` |
 | Payouts | Payout amount, payout fees | payout metrics |
 | API and freshness | Last successful poll, failed poll ratio | API request and freshness metrics |
 
-No empty row is included for metrics that do not exist. Deferred account reward
-and account share metrics are not queried.
+No empty row is included for metrics that do not exist. Active users and the
+website-only 30-minute pool hashrate average are not queried because they are
+not exposed by the documented authenticated API. Deferred account reward and
+account share metrics are not queried.
 
 ## Query and no-data policy
 

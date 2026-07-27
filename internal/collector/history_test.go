@@ -222,12 +222,16 @@ func TestHistoryAndAccountAndWorkerMetricsRegisterTogether(t *testing.T) {
 	t.Parallel()
 
 	clock := &fakeClock{now: time.Unix(100, 0)}
+	pool := newTestPoolMetrics(t, fakePoolClient{stats: []braiins.CoinEnvelope[braiins.PoolStats]{testPoolStats()}}, clock)
 	account := newTestAccountMetrics(t, fakeAccountClient{profiles: []braiins.ProfileResponse{testProfile()}}, clock)
 	worker := newTestWorkerMetrics(t, fakeWorkerClient{responses: []braiins.CoinEnvelope[braiins.WorkersResponse]{testWorkers("worker-a")}}, clock, 100)
 	history := newTestHistoryMetrics(t, fakeHistoryClient{
 		reward: testRewards(testReward(100, "0.1", "0.1")),
 		payout: testPayouts(testPayout("confirmed", 10, 1, 100)),
 	}, clock, 7, true, true)
+	if err := pool.Poll(context.Background()); err != nil {
+		t.Fatalf("pool Poll() error = %v", err)
+	}
 	if err := account.Poll(context.Background()); err != nil {
 		t.Fatalf("account Poll() error = %v", err)
 	}
@@ -238,10 +242,12 @@ func TestHistoryAndAccountAndWorkerMetricsRegisterTogether(t *testing.T) {
 		t.Fatalf("history Poll() error = %v", err)
 	}
 	registry := prometheus.NewRegistry()
+	RegisterPoolMetrics(registry, pool)
 	RegisterAccountMetrics(registry, account)
 	RegisterWorkerMetrics(registry, worker)
 	RegisterHistoryMetrics(registry, history)
 	families := gatherFamilies(t, registry)
+	assertMetric(t, families, "braiins_pool_api_requests_total", map[string]string{"endpoint": "pool_stats", "result": "success"}, 1)
 	assertMetric(t, families, "braiins_pool_api_requests_total", map[string]string{"endpoint": "profile", "result": "success"}, 1)
 	assertMetric(t, families, "braiins_pool_api_requests_total", map[string]string{"endpoint": "workers", "result": "success"}, 1)
 	assertMetric(t, families, "braiins_pool_api_requests_total", map[string]string{"endpoint": "rewards", "result": "success"}, 1)

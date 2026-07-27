@@ -42,13 +42,13 @@ type CoinEnvelope[T any] map[string]T
 
 type PoolStats struct {
 	HashRateUnit      string               `json:"hash_rate_unit"`
-	PoolActiveWorkers int64                `json:"pool_active_workers"`
+	PoolActiveWorkers *int64               `json:"pool_active_workers"`
 	PoolHashRate5m    Decimal              `json:"pool_5m_hash_rate"`
 	PoolHashRate60m   Decimal              `json:"pool_60m_hash_rate"`
 	PoolHashRate24h   Decimal              `json:"pool_24h_hash_rate"`
 	UpdateTS          int64                `json:"update_ts"`
 	Blocks            map[string]PoolBlock `json:"blocks"`
-	FPPSRate          Decimal              `json:"fpps_rate"`
+	FPPSRate          *Decimal             `json:"fpps_rate"`
 }
 
 type PoolBlock struct {

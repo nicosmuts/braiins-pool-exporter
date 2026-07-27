@@ -249,6 +249,13 @@ func (c *Client) doJSONOnce(ctx context.Context, req Request, out any) error {
 	return nil
 }
 
+// PoolStats fetches authenticated pool-wide telemetry for the selected coin.
+func (c *Client) PoolStats(ctx context.Context, coin string) (CoinEnvelope[PoolStats], error) {
+	var stats CoinEnvelope[PoolStats]
+	err := c.DoJSON(ctx, Request{Endpoint: EndpointPoolStats, Coin: coin}, &stats)
+	return stats, err
+}
+
 // Profile fetches the authenticated account profile for the selected coin.
 func (c *Client) Profile(ctx context.Context, coin string) (ProfileResponse, error) {
 	var profile ProfileResponse
