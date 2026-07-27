@@ -1,3 +1,5 @@
+name: braiins-pool-exporter
+
 services:
   braiins-pool-exporter:
     build:
@@ -63,6 +65,25 @@ services:
       - grafana-data:/var/lib/grafana
     depends_on:
       - prometheus
+    restart: unless-stopped
+
+  avalonhome-prometheus-exporter:
+    image: ghcr.io/brav0charlie/avalonhome-prometheus-exporter:v0.3.2@sha256:2768adbc0132c2b97e0ea78a00194b0bcf60f8e79e303e1268ecd3c66f75d0d7
+    scale: ${AVALON_EXPORTER_SCALE:-0}
+    environment:
+      AVALON_IPS: ${AVALON_IPS:-10.0.0.101,10.0.0.102}
+      AVALON_PORT: ${AVALON_PORT:-4028}
+      UPDATE_INTERVAL: ${UPDATE_INTERVAL:-15}
+      EXPORTER_PORT: ${EXPORTER_PORT:-9100}
+      EXPORT_CHIP_METRICS: ${EXPORT_CHIP_METRICS:-false}
+      MINER_TIMEOUT: ${MINER_TIMEOUT:-5.0}
+      ENABLE_DEBUG_ENDPOINT: ${ENABLE_DEBUG_ENDPOINT:-false}
+      LOG_LEVEL: ${AVALON_LOG_LEVEL:-INFO}
+    ports:
+      - "9100:9100"
+    read_only: true
+    tmpfs:
+      - /tmp
     restart: unless-stopped
 
 volumes:

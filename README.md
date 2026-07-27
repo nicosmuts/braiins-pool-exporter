@@ -167,7 +167,13 @@ profile with the Compose override:
 docker compose -f compose.yaml -f compose.miner.yaml --profile miner up -d
 ```
 
-That profile starts
+The base Compose model defines the Avalon exporter at scale `0`, and the miner
+override scales that same service to `1`. This keeps the default stack free of
+device-side telemetry while allowing both `docker compose down
+-v` and the full `-f compose.yaml -f compose.miner.yaml --profile miner down
+-v` command to clean up every project container, network, and volume.
+
+That override starts
 [`avalonhome-prometheus-exporter`](https://github.com/brav0charlie/avalonhome-prometheus-exporter)
 and configures Prometheus to scrape it as
 `job="avalonhome-prometheus-exporter"` over the Compose network. The local

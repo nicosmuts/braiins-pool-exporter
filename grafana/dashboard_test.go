@@ -251,30 +251,49 @@ func TestDashboardMetricInventoryStaysExplicit(t *testing.T) {
 	}
 }
 
-func TestDashboardContainsCollapsedPoolStatisticsRow(t *testing.T) {
+func TestDashboardContainsCanonicalPoolStatisticsSection(t *testing.T) {
 	dash := loadDashboard(t)
+	titles := map[string]struct{}{}
 	for _, panel := range dash.Panels {
 		if panel.Title != "Pool Statistics" {
+			titles[panel.Title] = struct{}{}
 			continue
 		}
 		if panel.Type != "row" {
 			t.Fatalf("Pool Statistics type = %q, want row", panel.Type)
 		}
-		if !panel.Collapsed {
-			t.Fatal("Pool Statistics row is not collapsed")
+	}
+	for _, panel := range allPanels(dash.Panels) {
+		titles[panel.Title] = struct{}{}
+	}
+	if _, ok := titles["Pool Statistics"]; !ok {
+		t.Fatal("missing Pool Statistics row")
+	}
+	for _, title := range []string{"Pool hashrate", "Pool active workers", "Pool stats freshness"} {
+		if _, ok := titles[title]; !ok {
+			t.Fatalf("Pool Statistics section missing panel %q", title)
 		}
-		titles := map[string]struct{}{}
-		for _, nested := range panel.Panels {
-			titles[nested.Title] = struct{}{}
-		}
-		for _, title := range []string{"Pool hashrate", "Pool active workers", "Pool stats freshness"} {
-			if _, ok := titles[title]; !ok {
-				t.Fatalf("Pool Statistics row missing panel %q", title)
+	}
+}
+
+func TestDashboardDoesNotDisplayUnsupportedPoolValues(t *testing.T) {
+	dash := loadDashboard(t)
+	for _, panel := range allPanels(dash.Panels) {
+		title := strings.ToLower(panel.Title)
+		for _, unsupported := range []string{"active users", "30m", "30-minute"} {
+			if strings.Contains(title, unsupported) {
+				t.Fatalf("panel title displays unsupported pool value %q: %q", unsupported, panel.Title)
 			}
 		}
-		return
+		for _, target := range panel.Targets {
+			expr := strings.ToLower(target.Expr)
+			for _, unsupported := range []string{"active_users", "active users", "30m", "30-minute"} {
+				if strings.Contains(expr, unsupported) {
+					t.Fatalf("panel %q target %s queries unsupported pool value %q in %q", panel.Title, target.RefID, unsupported, target.Expr)
+				}
+			}
+		}
 	}
-	t.Fatal("missing Pool Statistics row")
 }
 
 func allPanels(panels []panel) []panel {
