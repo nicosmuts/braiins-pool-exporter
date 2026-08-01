@@ -1,8 +1,8 @@
 # Release process
 
-This project has not published a stable production release yet. The `v0.0.1`
-release is the first public development release for public review, local
-validation, and early integration testing. It is not a production-stability
+This project has not published a stable production release yet. The `v0.0.x`
+line is for public review, local validation, and early integration testing. It
+is not a production-stability
 declaration, and interfaces, configuration behavior, image metadata, and
 Prometheus metrics may still change before `v0.1.0`.
 
@@ -46,6 +46,7 @@ Release images are built only by `.github/workflows/release.yml` from
 
 - the exact semantic version tag;
 - the `major.minor` tag;
+- the commit-derived `sha-<short-sha>` tag;
 - `latest`.
 
 Operators should prefer immutable version tags or image digests for deployments.
@@ -100,8 +101,8 @@ After approval:
 git fetch origin
 git checkout main
 git pull --ff-only
-git tag -a v0.0.1 -m "v0.0.1"
-git push origin v0.0.1
+git tag -a v0.0.2 -m "v0.0.2"
+git push origin v0.0.2
 ```
 
 The tag push triggers the release workflow. Do not manually publish images or
