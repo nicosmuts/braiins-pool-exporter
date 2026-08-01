@@ -8,6 +8,8 @@ and this project intends to follow
 
 ## [Unreleased]
 
+## [0.0.2] - 2026-08-01
+
 ### Added
 
 - Optional Docker Compose `miner` profile for the upstream
@@ -94,4 +96,5 @@ the Prometheus metric contract may still change before `v0.1.0`.
 - Secure configuration skeleton and project documentation.
 
 [Unreleased]: https://github.com/nicosmuts/braiins-pool-exporter/commits/main
+[0.0.2]: https://github.com/nicosmuts/braiins-pool-exporter/releases/tag/v0.0.2
 [0.0.1]: https://github.com/nicosmuts/braiins-pool-exporter/releases/tag/v0.0.1
