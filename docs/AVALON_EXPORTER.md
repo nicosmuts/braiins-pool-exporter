@@ -41,7 +41,7 @@ only to the Avalon exporter.
 The local profile defaults are:
 
 ```text
-AVALON_IPS=10.0.0.101,10.0.0.102
+AVALON_IPS=avalon1047-01.local,avalon1047-02.local,avalon1047-03.local,avalon1047-04.local,avalon1047-05.local,avalon1047-06.local
 AVALON_PORT=4028
 UPDATE_INTERVAL=15
 EXPORTER_PORT=9100
@@ -59,14 +59,13 @@ this repository for other environments.
 The optional profile uses the upstream released image:
 
 ```text
-ghcr.io/brav0charlie/avalonhome-prometheus-exporter:v0.3.2@sha256:2768adbc0132c2b97e0ea78a00194b0bcf60f8e79e303e1268ecd3c66f75d0d7
+ghcr.io/brav0charlie/avalonhome-prometheus-exporter:v0.4.0@sha256:a6e0e4a2bf9070bafb2e084e18b347ef9bfbdbe5ce86c2c6a2850363f29adea7
 ```
 
 Review findings:
 
 - Repository: `brav0charlie/avalonhome-prometheus-exporter`
-- Latest release reviewed: `v0.3.2`
-- Release date: 2026-05-06
+- Latest release reviewed: `v0.4.0`
 - License: MIT
 - Runtime: Python 3.12 Alpine, non-root `app` user
 - Health endpoint: `/health`
@@ -78,14 +77,14 @@ Review findings:
 - Image platforms verified: `linux/amd64` and `linux/arm64`
 - Attestations: BuildKit attestation manifests are present
 
-No upstream issue or pull request for Avalon 10-series support was present at
-the time of review.
-
 ## AvalonMiner 1047 compatibility decision
 
-Outcome B was selected: the upstream exporter is suitable as a baseline local
-Compose integration, but a small upstream enhancement is required for complete
-AvalonMiner 1047 support.
+Outcome A is now selected: the upstream exporter includes AvalonMiner 1047
+support and remains suitable for the optional local Compose integration. The
+Compose profile configures six placeholder miner targets through `AVALON_IPS`.
+Prometheus still scrapes one target, `avalonhome-prometheus-exporter`, and the
+exporter emits one set of miner metrics per configured target with an `ip`
+label.
 
 Live read-only validation against two AvalonMiner 1047 devices confirmed:
 
@@ -93,34 +92,57 @@ Live read-only validation against two AvalonMiner 1047 devices confirmed:
 - CGMiner version is `4.11.1`
 - CGMiner API version is `3.7`
 - Both miners were reachable from an ordinary Docker bridge container
-- Upstream `v0.3.2` reported both miners up
+- Upstream `v0.3.2` reported both miners up during the earlier baseline review
 - Summary shares, hardware errors, fan duty, Fan1, max temperature, average
   temperature, moving hashrate, average hashrate, and work utility were
   exported
 - No raw miner payload, DNA, MAC address, pool URL, account/worker name, or
   private response body was committed
 
-Known gaps in upstream `v0.3.2` for AvalonMiner 1047:
+Previously reviewed gaps in upstream `v0.3.2` that `v0.4.0` is expected to
+address for AvalonMiner 1047:
 
-| 1047 field | Upstream `v0.3.2` result | Notes |
+| 1047 field | `v0.4.0` expectation | Notes |
 |---|---|---|
-| Model detection | Partial | `avalon_info` carries `model="1047"` and `prod="AvalonMiner 1047"`, but the project docs do not explicitly list 1047 support. |
-| `MHS 30s` | Missing as current hashrate | `avalon_hashrate_ghs` is absent when `GHSspd` is absent. |
-| `MHS 1m`, `MHS 5m`, `MHS 15m` | Missing | These summary windows are not exported. |
-| `Fan2` | Missing | 1047 reports a second fan but upstream exports only `Fan1`. |
-| `Temp` | Missing | Upstream exports `TMax` and `TAvg`, but not the 1047 current `Temp` field. |
-| `SYSTEMSTATU` | Missing | The work-state string includes hash-board information and is not mapped. |
-| Hash-board count | Missing | The 1047 devices reported two hash boards via `SYSTEMSTATU`. |
-| `PVT_T1`, `PVT_V1`, `MW1` | Missing | Upstream aggregate and optional chip metrics use only board-0 arrays. |
-| Per-board `MGHS`, `MTmax`, `MTavg` | Missing | Board-level telemetry is not exported. |
-| Power fields | Partially uncertain | `MPO` is exported as firmware-defined target power; `PS` slot semantics were not treated as verified 1047 watts. |
+| Model detection | Addressed upstream | `AvalonMiner 1047` is now listed as supported by upstream documentation. |
+| `MHS 30s` | Addressed upstream | Current hashrate is expected through `avalon_hashrate_ghs`. |
+| `MHS 1m`, `MHS 5m`, `MHS 15m` | Addressed upstream | Summary-window metrics are expected through `avalon_hashrate_1m_ghs`, `avalon_hashrate_5m_ghs`, and `avalon_hashrate_15m_ghs`. |
+| `Fan2` | Addressed upstream | Second fan RPM is expected through `avalon_fan2_rpm` when firmware reports it. |
+| `Temp` | Addressed upstream | Current temperature is expected through `avalon_temp_current_celsius`. |
+| `SYSTEMSTATU` | Addressed upstream | Working state is expected through `avalon_system_working`. |
+| Hash-board count | Addressed upstream | Board count is expected through `avalon_hash_boards`. |
+| `PVT_T1`, `PVT_V1`, `MW1` | Addressed upstream | Board-indexed chip arrays are expected to be included in aggregate chip metrics. |
+| Per-board `MGHS`, `MTmax`, `MTavg` | Addressed upstream | Board metrics are expected through `avalon_hashboard_*` metrics. |
+| Power fields | Still firmware-defined | `MPO` and `PS` fields remain firmware-defined and should be labelled as experimental in dashboards. |
 | Pool labels | Privacy-sensitive | Upstream labels per-pool metrics with pool URL; keep miner exporter endpoints private. |
 
-## Direct-versus-exported metric summary
+## Six-miner configuration
 
-The live comparison used read-only CGMiner commands and compared selected
-fields to `/metrics` from the upstream exporter. Exact live readings are not
-published because they are operational telemetry.
+Configure six Avalon 1047 miners with a comma-separated `AVALON_IPS` value in
+an uncommitted `.env` or operator-managed configuration:
+
+```text
+AVALON_IPS=avalon1047-01.local,avalon1047-02.local,avalon1047-03.local,avalon1047-04.local,avalon1047-05.local,avalon1047-06.local
+```
+
+Use real local hostnames or IP addresses outside the public repository. Stable
+hostnames are preferred because the upstream exporter exposes the configured
+target through the Prometheus `ip` label, and Grafana uses that label as the
+miner filter. Prometheus must continue scraping only
+`avalonhome-prometheus-exporter:9100`; it should not scrape miner CGMiner ports
+directly.
+
+Offline miners are expected to leave the exporter, Prometheus, Grafana, and
+Compose lifecycle healthy. When the upstream exporter can emit the down state,
+the miner appears as `avalon_up{ip="..."}` with value `0`. Otherwise, panels
+should show no data for metrics that are absent while the miner is offline.
+
+## Earlier direct-versus-exported metric summary
+
+The earlier live comparison used read-only CGMiner commands and compared
+selected fields to `/metrics` from upstream `v0.3.2`. Exact live readings are
+not published because they are operational telemetry. Re-validate these fields
+against `v0.4.0` when all six miners are available.
 
 | Source field | Exporter metric | Result |
 |---|---|---|

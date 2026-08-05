@@ -98,7 +98,7 @@ func TestAvalonDashboardIdentityAndVariables(t *testing.T) {
 	for _, variable := range dash.Templating.List {
 		vars[variable.Name] = variable
 	}
-	for _, name := range []string{"DS_PROMETHEUS", "job", "instance"} {
+	for _, name := range []string{"DS_PROMETHEUS", "job", "instance", "miner"} {
 		if _, ok := vars[name]; !ok {
 			t.Fatalf("missing dashboard variable %q", name)
 		}
@@ -112,7 +112,10 @@ func TestAvalonDashboardIdentityAndVariables(t *testing.T) {
 	if got := vars["instance"].Definition; got != `label_values(avalon_up{job=~"$job"}, instance)` {
 		t.Fatalf("instance variable query = %q", got)
 	}
-	for _, name := range []string{"job", "instance"} {
+	if got := vars["miner"].Definition; got != `label_values(avalon_up{job=~"$job", instance=~"$instance"}, ip)` {
+		t.Fatalf("miner variable query = %q", got)
+	}
+	for _, name := range []string{"job", "instance", "miner"} {
 		if !vars[name].IncludeAll || !vars[name].Multi || vars[name].AllValue != ".*" {
 			t.Fatalf("%s variable must be multi-select include-all with allValue .*", name)
 		}
@@ -155,6 +158,9 @@ func TestAvalonDashboardQueriesArePortableAndUseKnownMetrics(t *testing.T) {
 			}
 			if strings.Contains(target.Expr, "avalon_") && !strings.Contains(target.Expr, `instance=~"$instance"`) {
 				t.Fatalf("panel %q target %s lacks portable instance filter in %q", panel.Title, target.RefID, target.Expr)
+			}
+			if strings.Contains(target.Expr, "avalon_") && !strings.Contains(target.Expr, `ip=~"$miner"`) {
+				t.Fatalf("panel %q target %s lacks portable miner/ip filter in %q", panel.Title, target.RefID, target.Expr)
 			}
 		}
 	}

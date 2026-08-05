@@ -68,10 +68,10 @@ services:
     restart: unless-stopped
 
   avalonhome-prometheus-exporter:
-    image: ghcr.io/brav0charlie/avalonhome-prometheus-exporter:v0.3.2@sha256:2768adbc0132c2b97e0ea78a00194b0bcf60f8e79e303e1268ecd3c66f75d0d7
+    image: ghcr.io/brav0charlie/avalonhome-prometheus-exporter:v0.4.0@sha256:a6e0e4a2bf9070bafb2e084e18b347ef9bfbdbe5ce86c2c6a2850363f29adea7
     scale: ${AVALON_EXPORTER_SCALE:-0}
     environment:
-      AVALON_IPS: ${AVALON_IPS:-10.0.0.101,10.0.0.102}
+      AVALON_IPS: ${AVALON_IPS:-avalon1047-01.local,avalon1047-02.local,avalon1047-03.local,avalon1047-04.local,avalon1047-05.local,avalon1047-06.local}
       AVALON_PORT: ${AVALON_PORT:-4028}
       UPDATE_INTERVAL: ${UPDATE_INTERVAL:-15}
       EXPORTER_PORT: ${EXPORTER_PORT:-9100}

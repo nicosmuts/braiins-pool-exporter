@@ -301,7 +301,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Current Braiins account balance in BTC, summed across selected exporter instances. Omitted by the exporter when the profile field is absent; no account identifier is exported.",
+      "description": "Current Braiins rewards balance in BTC from the profile current_balance field, summed across selected exporter instances. This is not the Funds-page available balance. Omitted by the exporter when the profile field is absent; no account identifier is exported.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -364,7 +364,7 @@
           "refId": "A"
         }
       ],
-      "title": "Account balance",
+      "title": "Rewards balance",
       "type": "stat"
     },
     {

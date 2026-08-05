@@ -103,12 +103,12 @@ docker compose -f compose.yaml -f compose.miner.yaml --profile miner up -d
 ```
 
 The profile uses the upstream
-`ghcr.io/brav0charlie/avalonhome-prometheus-exporter:v0.3.2` image and its
+`ghcr.io/brav0charlie/avalonhome-prometheus-exporter:v0.4.0` image and its
 actual environment variables:
 
 | Setting | Default | Description |
 |---|---:|---|
-| `AVALON_IPS` | `10.0.0.101,10.0.0.102` | Comma-separated local miner API targets. |
+| `AVALON_IPS` | `avalon1047-01.local,avalon1047-02.local,avalon1047-03.local,avalon1047-04.local,avalon1047-05.local,avalon1047-06.local` | Comma-separated local miner API targets. |
 | `AVALON_PORT` | `4028` | CGMiner TCP API port. |
 | `UPDATE_INTERVAL` | `15` | Avalon exporter poll interval in seconds. |
 | `EXPORTER_PORT` | `9100` | Avalon exporter HTTP port inside the container. |
@@ -117,9 +117,15 @@ actual environment variables:
 | `ENABLE_DEBUG_ENDPOINT` | `false` | Enable upstream `/debug`; disabled by default for privacy. |
 | `AVALON_LOG_LEVEL` | `INFO` | Log level passed to upstream as `LOG_LEVEL`. |
 
-The two default miner IPs are local development defaults only. Override them in
-operator-managed configuration for other environments. The CGMiner API must
-permit read-only queries from the Docker host or bridge-networked container.
+The six default miner hostnames are local development placeholders only.
+Override them in an uncommitted `.env` or operator-managed configuration for
+real environments. Prometheus scrapes `avalonhome-prometheus-exporter`; it does
+not scrape the miners directly. The upstream exporter labels miner metrics with
+`ip`, using the configured hostname or IP value. Offline miners should not break
+the Compose stack; they are expected to appear as `avalon_up{ip="..."} 0` when
+the exporter can emit the down state, or as absent miner series that Grafana
+shows as no data. The CGMiner API must permit read-only queries from the Docker
+host or bridge-networked container.
 Do not expose the Avalon exporter or Prometheus publicly without network
 controls. See `docs/AVALON_EXPORTER.md` for the 1047 compatibility review.
 

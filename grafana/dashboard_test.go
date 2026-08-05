@@ -278,6 +278,24 @@ func TestDashboardContainsCanonicalPoolStatisticsSection(t *testing.T) {
 	}
 }
 
+func TestDashboardLabelsProfileBalanceAsRewardsBalance(t *testing.T) {
+	dash := loadDashboard(t)
+	for _, panel := range allPanels(dash.Panels) {
+		if strings.Contains(strings.ToLower(panel.Title), "account balance") {
+			t.Fatalf("panel title must not describe profile current_balance as account balance: %q", panel.Title)
+		}
+	}
+	for _, panel := range allPanels(dash.Panels) {
+		if panel.Title == "Rewards balance" {
+			if !strings.Contains(panel.Description, "not the Funds-page available balance") {
+				t.Fatalf("Rewards balance panel description must clarify available-balance semantics: %q", panel.Description)
+			}
+			return
+		}
+	}
+	t.Fatal("missing Rewards balance panel")
+}
+
 func TestDashboardPresentationConversions(t *testing.T) {
 	raw, err := os.ReadFile(dashboardPath)
 	if err != nil {

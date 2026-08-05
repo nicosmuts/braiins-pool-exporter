@@ -109,7 +109,7 @@ Acceptance criteria:
 - polling never occurs during collection;
 - cache and readiness behavior are deterministic and race-safe;
 - failures do not expose secrets and staleness is observable;
-- account balance is omitted when the official API cannot provide it;
+- rewards balance is omitted when the official API cannot provide it;
 - documentation and changelog are updated;
 - gofmt, vet, unit tests, race tests, build, linter if available, and
   git diff --check pass;

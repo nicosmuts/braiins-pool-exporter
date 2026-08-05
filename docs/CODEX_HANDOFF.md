@@ -130,7 +130,7 @@ Milestone 06 adds the reusable default Grafana dashboard:
   `braiins_pool_worker_state`, with no worker values stored in JSON;
 - panels cover exporter readiness, selected instances, API result rate,
   failed poll ratio, endpoint data age, last successful poll, account
-  hashrate, account balance, account worker counts, worker states, worker
+  hashrate, rewards balance, account worker counts, worker states, worker
   status, worker hashrate, worker shares, last-share age, rewards, payout
   amounts, and payout fees;
 - static Go tests validate dashboard JSON, UID/title, variables, datasource
@@ -174,20 +174,19 @@ exists. The initial public development release tag `v0.0.1` exists.
 
 After `v0.0.1`, an optional Avalon miner exporter Compose profile was prepared
 for Issue #11. It uses upstream
-`ghcr.io/brav0charlie/avalonhome-prometheus-exporter:v0.3.2` as a pinned,
+`ghcr.io/brav0charlie/avalonhome-prometheus-exporter:v0.4.0` as a pinned,
 optional `miner` profile service named `avalonhome-prometheus-exporter`.
 Default `docker compose up -d` remains limited to Braiins Pool Exporter,
 Prometheus, and Grafana. Miner mode uses
 `docker compose -f compose.yaml -f compose.miner.yaml --profile miner up -d`,
-local defaults `AVALON_IPS=10.0.0.101,10.0.0.102` and `AVALON_PORT=4028`, and
+local placeholder defaults for six Avalon 1047 miner targets and `AVALON_PORT=4028`, and
 the separate `prometheus/prometheus.miner.yml` scrape config.
 
-Live read-only validation showed upstream `v0.3.2` is suitable as a baseline
-local integration for AvalonMiner 1047 devices, but not complete 1047 support.
-Known gaps include missing `Fan2`, missing summary hashrate windows, missing
-current `Temp`, missing parsed `SYSTEMSTATU`/hash-board count, and board-1
-chip arrays (`PVT_T1`, `PVT_V1`, `MW1`). Keep Issue #11 dashboard work
-separate until these metric semantics are reviewed.
+Live read-only validation originally showed upstream `v0.3.2` was suitable as
+a baseline local integration for AvalonMiner 1047 devices. The optional profile
+now uses upstream `v0.4.0`, which includes the 1047 support work. Keep Issue #11
+dashboard work separate until the standalone Braiins and Avalon dashboards have
+been validated with the expanded six-miner setup.
 
 ## Validation caveats
 

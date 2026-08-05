@@ -40,7 +40,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Last scrape success by miner. One series is emitted per configured Avalon miner target.",
+      "description": "Last scrape success by configured Avalon miner target. Filtered by the miner/ip variable.",
       "fieldConfig": {
         "defaults": {
           "mappings": [
@@ -108,7 +108,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_up{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_up{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}}",
           "range": true,
           "refId": "A"
@@ -172,7 +172,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_info{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_info{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "{{ip}}",
@@ -305,7 +305,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_scrape_duration_seconds{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_scrape_duration_seconds{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}}",
           "range": true,
           "refId": "A"
@@ -392,7 +392,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "rate(avalon_scrape_errors_total{job=~\"$job\", instance=~\"$instance\"}[5m])",
+          "expr": "rate(avalon_scrape_errors_total{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}[5m])",
           "legendFormat": "{{ip}} total",
           "range": true,
           "refId": "A"
@@ -403,7 +403,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "rate(avalon_scrape_errors_timeout_total{job=~\"$job\", instance=~\"$instance\"}[5m])",
+          "expr": "rate(avalon_scrape_errors_timeout_total{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}[5m])",
           "legendFormat": "{{ip}} timeout",
           "range": true,
           "refId": "B"
@@ -414,7 +414,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "rate(avalon_scrape_errors_parse_total{job=~\"$job\", instance=~\"$instance\"}[5m])",
+          "expr": "rate(avalon_scrape_errors_parse_total{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}[5m])",
           "legendFormat": "{{ip}} parse",
           "range": true,
           "refId": "C"
@@ -476,7 +476,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_last_scrape_timestamp_seconds{job=~\"$job\", instance=~\"$instance\"} * 1000",
+          "expr": "avalon_last_scrape_timestamp_seconds{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} * 1000",
           "legendFormat": "{{ip}}",
           "range": true,
           "refId": "A"
@@ -503,7 +503,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Short-window/current hashrate when available. Upstream v0.3.2 may not export this for AvalonMiner 1047 until the upstream 1047 PR lands.",
+      "description": "Short-window/current hashrate by configured miner when the upstream exporter emits avalon_hashrate_ghs.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -576,7 +576,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_hashrate_ghs{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_hashrate_ghs{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} current",
           "range": true,
           "refId": "A"
@@ -663,7 +663,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_hashrate_moving_ghs{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_hashrate_moving_ghs{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} moving",
           "range": true,
           "refId": "A"
@@ -674,7 +674,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_hashrate_avg_ghs{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_hashrate_avg_ghs{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} average",
           "range": true,
           "refId": "B"
@@ -761,7 +761,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_work_utility{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_work_utility{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} stats",
           "range": true,
           "refId": "A"
@@ -772,7 +772,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_work_utility_summary{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_work_utility_summary{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} summary",
           "range": true,
           "refId": "B"
@@ -872,7 +872,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_temp_current_celsius{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_temp_current_celsius{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} current",
           "range": true,
           "refId": "A"
@@ -959,7 +959,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_temp_avg_celsius{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_temp_avg_celsius{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} average",
           "range": true,
           "refId": "A"
@@ -970,7 +970,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_temp_max_celsius{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_temp_max_celsius{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} max",
           "range": true,
           "refId": "B"
@@ -1057,7 +1057,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_temp_target_celsius{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_temp_target_celsius{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} target",
           "range": true,
           "refId": "A"
@@ -1157,7 +1157,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_fan1_rpm{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_fan1_rpm{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} Fan1",
           "range": true,
           "refId": "A"
@@ -1168,7 +1168,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_fan2_rpm{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_fan2_rpm{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} Fan2",
           "range": true,
           "refId": "B"
@@ -1255,7 +1255,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_fan_duty_percent{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_fan_duty_percent{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}}",
           "range": true,
           "refId": "A"
@@ -1355,7 +1355,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_shares_accepted_total{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_shares_accepted_total{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} accepted",
           "range": true,
           "refId": "A"
@@ -1366,7 +1366,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_shares_rejected_total{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_shares_rejected_total{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} rejected",
           "range": true,
           "refId": "B"
@@ -1377,7 +1377,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_shares_stale_total{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_shares_stale_total{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} stale",
           "range": true,
           "refId": "C"
@@ -1388,7 +1388,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_best_share{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_best_share{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} best share",
           "range": true,
           "refId": "D"
@@ -1475,7 +1475,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_hw_errors_total{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_hw_errors_total{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} errors",
           "range": true,
           "refId": "A"
@@ -1486,7 +1486,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_hw_error_rate_percent{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_hw_error_rate_percent{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} error %",
           "range": true,
           "refId": "B"
@@ -1584,7 +1584,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_pool_up{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_pool_up{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "{{ip}} pool {{pool_index}}",
@@ -1694,7 +1694,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_pool_shares_accepted_total{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_pool_shares_accepted_total{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} pool {{pool_index}} accepted",
           "range": true,
           "refId": "A"
@@ -1705,7 +1705,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_pool_shares_rejected_total{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_pool_shares_rejected_total{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} pool {{pool_index}} rejected",
           "range": true,
           "refId": "B"
@@ -1716,7 +1716,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_pool_stale_total{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_pool_stale_total{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} pool {{pool_index}} stale",
           "range": true,
           "refId": "C"
@@ -1743,7 +1743,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Experimental: upstream v0.3.2 treats these power values as firmware-defined. Validate units before using them for operations decisions.",
+      "description": "Experimental: upstream treats these power values as firmware-defined. Validate units before using them for operations decisions.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1816,7 +1816,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_mpo_target{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_mpo_target{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} MPO target",
           "range": true,
           "refId": "A"
@@ -1827,7 +1827,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_power_pout_wall{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_power_pout_wall{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} wall power",
           "range": true,
           "refId": "B"
@@ -1914,7 +1914,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_ps_slot_0{job=~\"$job\", instance=~\"$instance\"} or avalon_ps_slot_1{job=~\"$job\", instance=~\"$instance\"} or avalon_ps_slot_2{job=~\"$job\", instance=~\"$instance\"} or avalon_ps_slot_3{job=~\"$job\", instance=~\"$instance\"} or avalon_ps_slot_4{job=~\"$job\", instance=~\"$instance\"} or avalon_ps_slot_5{job=~\"$job\", instance=~\"$instance\"} or avalon_power_err{job=~\"$job\", instance=~\"$instance\"} or avalon_power_vout{job=~\"$job\", instance=~\"$instance\"} or avalon_power_iout{job=~\"$job\", instance=~\"$instance\"} or avalon_power_vout_cmd{job=~\"$job\", instance=~\"$instance\"} or avalon_power_pout_wall{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_ps_slot_0{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_ps_slot_1{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_ps_slot_2{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_ps_slot_3{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_ps_slot_4{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_ps_slot_5{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_power_err{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_power_vout{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_power_iout{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_power_vout_cmd{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_power_pout_wall{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} {{__name__}}",
           "range": true,
           "refId": "A"
@@ -1941,7 +1941,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Per-board hashrate and temperatures if exported by the selected upstream build. Shows No data on upstream v0.3.2.",
+      "description": "Per-board hashrate and temperatures if exported by the selected upstream build. Shows No data when board metrics are absent.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2014,7 +2014,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_hashboard_hashrate_ghs{job=~\"$job\", instance=~\"$instance\"} or avalon_hashboard_temp_max_celsius{job=~\"$job\", instance=~\"$instance\"} or avalon_hashboard_temp_avg_celsius{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_hashboard_hashrate_ghs{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_hashboard_temp_max_celsius{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_hashboard_temp_avg_celsius{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} {{__name__}}",
           "range": true,
           "refId": "A"
@@ -2101,7 +2101,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_chip_count{job=~\"$job\", instance=~\"$instance\"} or avalon_chip_temp_min_celsius{job=~\"$job\", instance=~\"$instance\"} or avalon_chip_temp_avg_celsius{job=~\"$job\", instance=~\"$instance\"} or avalon_chip_temp_max_celsius{job=~\"$job\", instance=~\"$instance\"} or avalon_chip_voltage_min_volts{job=~\"$job\", instance=~\"$instance\"} or avalon_chip_voltage_avg_volts{job=~\"$job\", instance=~\"$instance\"} or avalon_chip_voltage_max_volts{job=~\"$job\", instance=~\"$instance\"} or avalon_chip_matching_work_min{job=~\"$job\", instance=~\"$instance\"} or avalon_chip_matching_work_avg{job=~\"$job\", instance=~\"$instance\"} or avalon_chip_matching_work_max{job=~\"$job\", instance=~\"$instance\"} or avalon_chip_matching_work_sum{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_chip_count{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_chip_temp_min_celsius{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_chip_temp_avg_celsius{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_chip_temp_max_celsius{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_chip_voltage_min_volts{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_chip_voltage_avg_volts{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_chip_voltage_max_volts{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_chip_matching_work_min{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_chip_matching_work_avg{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_chip_matching_work_max{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_chip_matching_work_sum{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} {{__name__}}",
           "range": true,
           "refId": "A"
@@ -2188,7 +2188,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avalon_chip_temp_celsius{job=~\"$job\", instance=~\"$instance\"} or avalon_chip_voltage_volts{job=~\"$job\", instance=~\"$instance\"} or avalon_chip_matching_work{job=~\"$job\", instance=~\"$instance\"}",
+          "expr": "avalon_chip_temp_celsius{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_chip_voltage_volts{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"} or avalon_chip_matching_work{job=~\"$job\", instance=~\"$instance\", ip=~\"$miner\"}",
           "legendFormat": "{{ip}} chip {{chip}} {{__name__}}",
           "range": true,
           "refId": "A"
@@ -2268,6 +2268,39 @@
         },
         "refresh": 1,
         "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "definition": "label_values(avalon_up{job=~\"$job\", instance=~\"$instance\"}, ip)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Miner",
+        "multi": true,
+        "name": "miner",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(avalon_up{job=~\"$job\", instance=~\"$instance\"}, ip)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
         "sort": 1,
         "type": "query"
       }

@@ -65,7 +65,7 @@ outside the public repository.
 ### Account metrics
 
 - Account hashrate windows.
-- Current account balance.
+- Current rewards balance.
 - Account worker counts by normalized state.
 - Account freshness and last-success timestamps.
 
@@ -180,15 +180,22 @@ and configures Prometheus to scrape it as
 defaults are:
 
 ```text
-AVALON_IPS=10.0.0.101,10.0.0.102
+AVALON_IPS=avalon1047-01.local,avalon1047-02.local,avalon1047-03.local,avalon1047-04.local,avalon1047-05.local,avalon1047-06.local
 AVALON_PORT=4028
 ```
 
-The miner IPs are passed only to the Avalon exporter. Prometheus scrapes the
+The miner hosts are passed only to the Avalon exporter. Prometheus scrapes the
 exporter service name, not the miners directly. Operators must override the
-miner list outside this repository for other environments. The CGMiner TCP API
-must permit read-only queries from the Docker host or bridge-networked
-containers.
+miner list in an uncommitted `.env` or operator-managed configuration for real
+environments. The upstream exporter labels miner metrics with `ip`, using the
+configured hostname or IP value, so stable hostnames are preferred when they are
+available. The CGMiner TCP API must permit read-only queries from the Docker
+host or bridge-networked containers.
+
+The Avalon exporter is expected to keep running when one or more configured
+miners are offline. Offline miners should appear through exporter availability
+metrics such as `avalon_up{ip="..."}` with a value of `0`, or otherwise as
+missing miner series that the dashboard treats as no data.
 
 Extended chip metrics remain disabled by default with
 `EXPORT_CHIP_METRICS=false` because they can create high-cardinality series.

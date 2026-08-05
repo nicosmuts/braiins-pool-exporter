@@ -61,7 +61,7 @@ Prometheus scrape labels naturally.
 | `braiins_pool_active_workers` | gauge | none | count | pool | token-dependent after first pool stats success | pool active workers stat | no token, no first success, or empty selection | pool-wide aggregate only |
 | `braiins_pool_stats_update_timestamp_seconds` | gauge | none | Unix seconds | pool | token-dependent and field-dependent | source update time stat, multiplied by 1000 for Grafana date rendering | no token, no first success, omitted source timestamp, or empty selection | pool-wide source timestamp only |
 | `braiins_pool_account_hashrate_ghs` | gauge | `window` | Gh/s | account | token-dependent after first profile success | account hashrate time series, displayed as TH/s | no token, no first success, missing profile window, or empty selection | no account label |
-| `braiins_pool_account_balance_btc` | gauge | none | BTC | account | token-dependent and field-dependent | account balance stat | no token, no first success, omitted balance field, or empty selection | financial value, no account label |
+| `braiins_pool_account_balance_btc` | gauge | none | BTC | account | token-dependent and field-dependent | rewards balance stat | no token, no first success, omitted balance field, or empty selection | profile reward-balance value, no account label |
 | `braiins_pool_account_workers` | gauge | `state` | count | account | token-dependent after first profile success | aggregate worker states | no token, no first success, or empty selection | aggregate only |
 | `braiins_pool_worker_state` | gauge | `worker`, `state` | one-hot | worker | token- and worker-endpoint-dependent | state counts, status table, worker variable | worker metrics disabled, no first worker success, no workers, or empty selection | worker label may be private |
 | `braiins_pool_worker_hashrate_ghs` | gauge | `worker`, `window` | Gh/s | worker | token- and optional-field-dependent | worker hashrate time series and status table, displayed as TH/s | worker metrics disabled, no first success, omitted window, or empty selection | worker label may be private |
@@ -85,7 +85,7 @@ the exporter contract documented in `docs/METRICS.md`.
 |---|---|---|
 | Exporter overview | Exporter readiness, selected instances, endpoint data age, API poll result rate | `braiins_pool_exporter_ready`, `braiins_pool_data_age_seconds`, `braiins_pool_api_requests_total` |
 | Pool Statistics | Pool hashrate (EH/s), pool active workers, pool stats freshness, pool source update time | pool metrics and pool stats freshness |
-| Account | Account hashrate, account balance, account workers by state | account metrics |
+| Account | Account hashrate, rewards balance, account workers by state | account metrics |
 | Workers | Worker states, worker status table, worker hashrate, worker last-share age, worker shares | worker metrics |
 | Rewards | Rewards by component | `braiins_pool_reward_daily_btc` |
 | Payouts | Payout amount, payout fees | payout metrics |
@@ -157,7 +157,7 @@ The standalone Avalon dashboard is stored at
 - UID: `avalon-miner-exporter`
 - Title: `Avalon Miner Exporter`
 - Datasource variable: `DS_PROMETHEUS`
-- Runtime filters: `job` and `instance`
+- Runtime filters: `job`, `instance`, and `miner`
 
 This dashboard uses only metrics emitted by
 `avalonhome-prometheus-exporter`. It is provisioned by the existing Grafana file
@@ -165,8 +165,7 @@ provider when the `grafana/` directory is mounted. It does not modify the
 default Braiins Pool Exporter dashboard and is not the combined production
 operations dashboard tracked by Issue #11.
 
-Some panels intentionally show `No data` with upstream `v0.3.2`, including
-Fan2, current temperature, board metrics, and individual chip telemetry when
-`EXPORT_CHIP_METRICS=false`. These panels validate metric usefulness as
-upstream support evolves without filling absent optional series with false
-zeros.
+Some panels intentionally show `No data` when the selected upstream build,
+miner firmware, offline state, or `EXPORT_CHIP_METRICS=false` setting leaves an
+optional metric absent. These panels validate metric usefulness without filling
+absent optional series with false zeros.

@@ -1,6 +1,7 @@
 .git
 .github
 .gocache
+audit.local
 bin
 dist
 tmp
